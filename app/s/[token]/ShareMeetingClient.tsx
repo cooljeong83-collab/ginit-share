@@ -1375,7 +1375,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
                 {joined ? <SvgLeaveMeetingIcon /> : <SvgGuestParticipateIcon />}
               </span>
             ) : null}
-            {busy ? '처리 중…' : joined ? '모임 나가기' : '게스트 참여'}
+            {busy ? '처리 중…' : joined ? '나가기/재투표' : '게스트 참여'}
           </button>
           <a href={openInAppUrl} className="gPillBtn gPillPrimary">
             <img src="/ginit-logo.png" alt="" className="gPillBtnLogo" width={22} height={22} />
@@ -1385,7 +1385,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
       </div>
 
       {leaveConfirmOpen && joined ? (
-        <div className="gModalRoot" role="dialog" aria-modal="true" aria-label="모임 나가기">
+        <div className="gModalRoot" role="dialog" aria-modal="true" aria-label="모임 참여 취소 및 재투표">
           <button
             type="button"
             className="gModalBackdrop"
@@ -1393,10 +1393,10 @@ export default function ShareMeetingClient({ token }: { token: string }) {
             aria-label="닫기"
           />
           <div className="gModalCard">
-            <div className="gModalTitle">모임 참여 취소</div>
+            <div className="gModalTitle">모임 참여 취소 / 재 투표</div>
             <div className="gModalSub">
-              모임 참여가 취소됩니다. 이 브라우저에 저장된 참여·투표 정보는 서버에서 삭제되며, 목록에서도 빠져요. 같은
-              링크로 다시 참여할 수 있어요.
+              모임 참여가 취소됩니다. 이 브라우저에 저장된 참여·투표 정보는 서버에서 삭제되며, 목록에서도 빠져요.{' '}
+              <strong>같은 링크로 다시 참여할 수 있어요.</strong>
             </div>
             <div className="gConfirmBtnRow" style={{ marginTop: 14 }}>
               <button type="button" className="gPillBtn" disabled={busy} onClick={() => setLeaveConfirmOpen(false)}>
