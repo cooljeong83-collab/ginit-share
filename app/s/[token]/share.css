@@ -433,7 +433,7 @@ body {
   color: var(--g-primary);
 }
 
-.gPlaceTitleBelow {
+.gPlaceTitleBelow {   
   font-size: 13.5px;
   font-weight: 950;
   color: #0f172a;
