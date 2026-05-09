@@ -24,9 +24,28 @@ function buildShareDescription(meeting: LooseMeeting, title: string): string {
   return `${title} — 지닛 웹 공유에서 일정·장소 투표에 참여해 보세요.`;
 }
 
+function pickFirstHttpsFromPlace(p: unknown): string | null {
+  if (!p || typeof p !== 'object' || Array.isArray(p)) return null;
+  const o = p as Record<string, unknown>;
+  for (const k of ['preferredPhotoMediaUrl', 'photoUrl', 'imageUrl']) {
+    const u = asStr(o[k]);
+    if (u.startsWith('https://') || u.startsWith('http://')) return u;
+  }
+  return null;
+}
+
+/** 모임 대표 이미지 없을 때 장소 후보 썸네일로 OG 이미지 보강 */
 function pickOgImageUrl(meeting: LooseMeeting): string | null {
-  const u = asStr(meeting.imageUrl);
-  if (u.startsWith('https://') || u.startsWith('http://')) return u;
+  const direct = asStr(meeting.imageUrl);
+  if (direct.startsWith('https://') || direct.startsWith('http://')) return direct;
+
+  const raw = meeting.placeCandidates;
+  if (Array.isArray(raw)) {
+    for (const p of raw) {
+      const u = pickFirstHttpsFromPlace(p);
+      if (u) return u;
+    }
+  }
   return null;
 }
 
