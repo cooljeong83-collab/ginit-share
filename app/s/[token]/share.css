@@ -1,0 +1,1189 @@
+:root {
+  /* app meeting detail is mostly light (white cards on soft bg) */
+  --g-bg: #f1f5f9;
+  --g-card: #ffffff;
+  --g-card-border: rgba(15, 23, 42, 0.06);
+  --g-text: #0f172a;
+  --g-muted: #64748b;
+  --g-danger: #e11d48;
+  /* deep purple (app) */
+  --g-primary: #4c1d95;
+  --g-primary-2: #6d28d9;
+  --g-primary-soft: rgba(76, 29, 149, 0.1);
+  --g-pill: rgba(76, 29, 149, 0.1);
+  --g-pill-border: rgba(76, 29, 149, 0.22);
+  --g-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--g-bg);
+  color: var(--g-text);
+}
+
+.gShell {
+  min-height: 100dvh;
+  padding: 16px 16px 112px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.gHero {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  margin-bottom: 10px;
+}
+
+.gHeroImage {
+  height: 190px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--g-card-border);
+  background: #e2e8f0;
+  position: relative;
+  box-shadow: var(--g-shadow);
+}
+
+.gHeroImage > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.05) contrast(1.03);
+}
+
+/* 타이틀 히어로: 장소 후보 썸네일 가로 한 줄 */
+.gHeroThumbRow {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 100%;
+  gap: 0;
+}
+
+.gHeroThumbCell {
+  flex: 1 1 0;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.gHeroThumbCell img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.05) contrast(1.03);
+}
+
+.gCollage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  height: 100%;
+  gap: 0;
+  background: transparent;
+}
+
+/* 2장: 5:5 */
+.gCollage2 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
+}
+
+/* 3장: 1:1:1 */
+.gCollage3 {
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr;
+}
+
+/* 4장+: 2x2 */
+.gCollage4 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.gCollageCell {
+  position: relative;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.gCollageCell img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* use auto placement; templates above define layout */
+
+.gHeroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.0), rgba(15, 23, 42, 0.2));
+}
+
+.gHeroBody {
+  margin-top: -18px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--g-card);
+  border: 1px solid var(--g-card-border);
+  box-shadow: var(--g-shadow);
+}
+
+.gKicker {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--g-muted);
+}
+
+.gTitle {
+  margin: 6px 0 0;
+  font-size: 18px;
+  line-height: 1.45;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+.gDesc {
+  margin: 10px 0 0;
+  color: #334155;
+  white-space: pre-wrap;
+  line-height: 1.55;
+  font-size: 14px;
+}
+
+.gCard {
+  background: var(--g-card);
+  border: 1px solid var(--g-card-border);
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 20px;
+  box-shadow: var(--g-shadow);
+}
+
+.gSectionTitle {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+.gSectionTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.gRequiredPill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
+}
+
+.gInputInvalid {
+  border-color: rgba(220, 38, 38, 0.55) !important;
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.15);
+}
+
+.gHintCalloutWarn {
+  border-color: rgba(180, 83, 9, 0.35);
+  background: rgba(251, 191, 36, 0.16);
+}
+
+.gPlaceCardReadonly {
+  cursor: default;
+}
+
+.gModalWarn {
+  color: #b45309;
+}
+
+.gSectionSub {
+  margin: -6px 0 10px;
+  font-size: 12px;
+  color: var(--g-muted);
+}
+
+.gInput,
+.gTextarea {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(248, 250, 252, 0.95);
+  color: #0f172a;
+  padding: 12px 12px;
+  outline: none;
+  font-size: 15px;
+}
+
+.gTextarea {
+  resize: vertical;
+  min-height: 82px;
+}
+
+.gInput::placeholder,
+.gTextarea::placeholder {
+  color: rgba(226, 232, 240, 0.42);
+}
+
+.gChipWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(248, 250, 252, 0.95);
+  color: #0f172a;
+  font-weight: 750;
+  font-size: 13px;
+}
+
+.gChipLabel {
+  display: inline-block;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gChipTally {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  color: #0f172a;
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.gChipTallyOn {
+  background: rgba(76, 29, 149, 0.14);
+  color: var(--g-primary);
+}
+
+.gChipCheck {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: transparent;
+  background: rgba(248, 250, 252, 0.95);
+}
+
+.gChipCheckOn {
+  border: 1px solid rgba(76, 29, 149, 0.32);
+  background: rgba(76, 29, 149, 0.14);
+  color: var(--g-primary);
+}
+
+.gChipOn {
+  border: 1px solid rgba(76, 29, 149, 0.32);
+  background: rgba(76, 29, 149, 0.1);
+  color: var(--g-primary);
+}
+
+.gHScroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  /* 선택 링 box-shadow가 잘리지 않도록 */
+  padding: 6px 8px 10px;
+}
+
+.gPlaceCard {
+  flex: 0 0 auto;
+  width: 176px;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+  overflow: hidden;
+  text-align: left;
+  padding: 0;
+  box-shadow: var(--g-shadow);
+}
+
+.gPlaceCardOn {
+  border: 2px solid var(--g-primary);
+  box-shadow:
+    0 0 0 3px rgba(76, 29, 149, 0.22),
+    0 10px 26px rgba(76, 29, 149, 0.16);
+}
+
+.gPlaceThumb {
+  position: relative;
+  flex-shrink: 0;
+  height: 148px;
+  background: #e2e8f0;
+}
+
+.gPlaceThumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gPlaceThumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.0) 45%, rgba(2, 6, 23, 0.38));
+  pointer-events: none;
+}
+
+.gPlaceThumbPh {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(76, 29, 149, 0.08), rgba(109, 40, 217, 0.06));
+}
+
+.gPlaceBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 12px 14px;
+  background: #ffffff;
+}
+
+.gPlaceVoteBadges {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.gPlaceTallyPill {
+  min-width: 26px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 950;
+  font-size: 12px;
+  color: #0f172a;
+}
+
+.gPlaceCheckCircle {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 950;
+  font-size: 12px;
+  color: transparent;
+}
+
+.gPlaceCheckCircleOn {
+  background: rgba(76, 29, 149, 0.12);
+  border: 1px solid rgba(76, 29, 149, 0.26);
+  color: var(--g-primary);
+}
+
+.gPlaceTitleBelow {
+  font-size: 13.5px;
+  font-weight: 950;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gPlaceMetaBelow {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gPlaceInfoBtn,
+.gPlaceInfoBtnDisabled {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 10px;
+  border-radius: 999px;
+  font-weight: 950;
+  font-size: 12.5px;
+  text-decoration: none;
+}
+
+/* 장소 후보 카드: 본문 영역 하단에 상세 정보 정렬 */
+.gPlaceBody .gPlaceInfoBtn,
+.gPlaceBody .gPlaceInfoBtnDisabled {
+  margin-top: auto;
+}
+
+/* 영화 카드 등(장소 본문 외)은 기존 간격 유지 */
+.gMovieBody .gPlaceInfoBtn,
+.gMovieBody .gPlaceInfoBtnDisabled {
+  margin-top: 10px;
+}
+
+.gPlaceInfoBtn {
+  border: 1px solid rgba(76, 29, 149, 0.35);
+  background: rgba(76, 29, 149, 0.1);
+  color: var(--g-primary);
+}
+
+.gPlaceInfoBtnDisabled {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #f1f5f9;
+  color: rgba(15, 23, 42, 0.35);
+}
+
+.gMovieCard {
+  flex: 0 0 auto;
+  width: 176px;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+  overflow: hidden;
+  text-align: left;
+  padding: 0;
+  box-shadow: var(--g-shadow);
+}
+
+.gMovieCardOn {
+  border: 2px solid var(--g-primary);
+  box-shadow:
+    0 0 0 3px rgba(76, 29, 149, 0.22),
+    0 10px 26px rgba(76, 29, 149, 0.16);
+}
+
+.gMoviePoster {
+  position: relative;
+  height: 206px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.gMoviePoster img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.gMoviePosterPh {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(76, 29, 149, 0.08), rgba(109, 40, 217, 0.06));
+}
+
+.gMovieBody {
+  padding: 12px 12px 14px;
+}
+
+.gMovieTitle {
+  font-size: 13.5px;
+  font-weight: 950;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gMovieMeta {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gPlaceDetailBtn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(76, 29, 149, 0.35);
+  background: linear-gradient(135deg, var(--g-primary), var(--g-primary-2));
+  color: #ffffff;
+  font-weight: 950;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.gPlaceDetailBtnDisabled {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #f1f5f9;
+  color: rgba(15, 23, 42, 0.35);
+  font-weight: 950;
+  font-size: 14px;
+}
+
+/* (legacy non-overlay place styles removed) */
+
+.gConfirmPlaceRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.gConfirmPlaceImg {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #e2e8f0;
+  position: relative;
+  min-height: 126px;
+}
+
+.gConfirmPlaceImg img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gConfirmPlaceInfo {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gConfirmPlaceName {
+  font-size: 16px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+  line-height: 1.25;
+}
+
+.gConfirmPlaceMeta {
+  font-size: 12.5px;
+  color: #64748b;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gConfirmBtnRow {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.gConfirmActionBtn,
+.gConfirmActionBtnDisabled {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 12px;
+  border-radius: 999px;
+  font-weight: 950;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.gConfirmActionBtn {
+  border: 1px solid rgba(76, 29, 149, 0.35);
+  background: linear-gradient(135deg, var(--g-primary), var(--g-primary-2));
+  color: #ffffff;
+}
+
+.gConfirmActionBtn:hover {
+  opacity: 0.96;
+}
+
+.gConfirmActionBtnDisabled {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #f1f5f9;
+  color: rgba(15, 23, 42, 0.35);
+}
+
+.gAlert {
+  margin-top: 12px;
+  color: var(--g-danger);
+  font-weight: 650;
+}
+
+.gFooter {
+  margin-top: 22px;
+  color: var(--g-muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.gHintCallout {
+  margin-top: 12px;
+  padding: 12px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(76, 29, 149, 0.18);
+  background: rgba(76, 29, 149, 0.08);
+  color: #0f172a;
+  font-weight: 850;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.gBadgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.gMiniBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--g-pill);
+  color: var(--g-primary);
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.gMiniBadgeMuted {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.gInfoGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.gInfoLabel {
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.gInfoValue {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+  line-height: 1.35;
+}
+
+.gDivider {
+  height: 2px;
+  background: rgba(15, 23, 42, 0.08);
+  border-radius: 2px;
+  margin: 14px 0 8px;
+}
+
+.gAvatarRow {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px;
+}
+
+.gAvatarCol {
+  width: 72px;
+  flex: 0 0 auto;
+  text-align: center;
+}
+
+.gAvatarCircle {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(248, 250, 252, 0.95);
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.gAvatarCirclePhoto {
+  padding: 0;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.gAvatarCirclePhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.gAvatarLabel {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+  white-space: pre-line;
+}
+
+.gBottomBar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(241, 245, 249, 0), rgba(241, 245, 249, 0.85), rgba(241, 245, 249, 0.98));
+  backdrop-filter: blur(10px);
+}
+
+.gBottomInner {
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.gBottomInner > button.gPillBtn,
+.gBottomInner > a.gPillBtn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.gPillBtnLogo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.gPillBtnSymbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  color: inherit;
+}
+
+.gPillBtnSymbol svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.gPillBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(76, 29, 149, 0.22);
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.gPillPrimary {
+  border: 1px solid rgba(76, 29, 149, 0.35);
+  background: linear-gradient(135deg, var(--g-primary), var(--g-primary-2));
+  color: #fff;
+}
+
+a.gPillBtn.gPillPrimary:visited {
+  color: #fff;
+}
+
+/* 딥퍼플 버튼 위 심볼 로고를 단색 흰색으로 */
+.gPillBtn.gPillPrimary .gPillBtnLogo {
+  filter: brightness(0) invert(1);
+}
+
+.gPillDanger {
+  border: 1px solid rgba(185, 28, 28, 0.5);
+  background: linear-gradient(135deg, #991b1b, #dc2626);
+  color: #fff;
+}
+
+.gPillBtn:disabled {
+  opacity: 0.7;
+}
+
+.gChipLocked,
+.gPlaceCardLocked {
+  opacity: 0.92;
+}
+
+.gSinglePlaceCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+  border-radius: 22px;
+  border: 2px solid transparent;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gSinglePlaceCardSelected {
+  border-color: var(--g-primary);
+  box-shadow:
+    0 0 0 3px rgba(76, 29, 149, 0.22),
+    0 10px 26px rgba(76, 29, 149, 0.12);
+}
+
+.gCenterEmpty {
+  min-height: 70dvh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.gEmptyTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.gEmptyText {
+  margin: 10px 0 0;
+  color: var(--g-muted);
+  line-height: 1.55;
+}
+
+.gModalRoot {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: end center;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+}
+
+.gModalBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.45);
+  border: 0;
+}
+
+.gModalCard {
+  position: relative;
+  width: min(600px, 100%);
+  border-radius: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+  box-shadow: 0 28px 80px rgba(2, 6, 23, 0.35);
+  padding: 16px 16px 14px;
+}
+
+.gModalTitle {
+  font-size: 16px;
+  font-weight: 950;
+  letter-spacing: -0.2px;
+  color: #0f172a;
+}
+
+.gModalSub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.gModalField {
+  margin-top: 12px;
+}
+
+.gCalendarHeader {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.gCalNavBtn {
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(76, 29, 149, 0.22);
+  background: #ffffff;
+  color: var(--g-primary);
+  font-weight: 950;
+  font-size: 16px;
+}
+
+.gCalNavBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.gCalTitle {
+  text-align: center;
+  font-weight: 950;
+  letter-spacing: -0.2px;
+  color: #0f172a;
+}
+
+.gCalendarDow {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.gCalendarDowCell {
+  font-size: 11px;
+  font-weight: 900;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.gCalendarGrid {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.gCalendarCell {
+  position: relative;
+  min-height: 44px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(248, 250, 252, 0.95);
+  padding: 8px 8px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.gCalendarCellOn {
+  min-height: 72px;
+}
+
+.gCalendarCellEmpty {
+  border: 0;
+  background: transparent;
+}
+
+.gCalendarCellOff {
+  opacity: 0.45;
+}
+
+.gCalendarCellSelected {
+  border: 2px solid var(--g-primary);
+  background: rgba(76, 29, 149, 0.1);
+  box-shadow: 0 0 0 3px rgba(76, 29, 149, 0.2);
+}
+
+.gCalDayNum {
+  font-weight: 950;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.gCalTimes {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gCalTimeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.gCalTimeHm {
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.78);
+  letter-spacing: -0.1px;
+}
+
+.gCalTimeTally {
+  min-width: 18px;
+  height: 16px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  font-weight: 950;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+}
+
+.gCalTimeMore {
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 950;
+  color: rgba(15, 23, 42, 0.52);
+}
+
+.gCalCheck {
+  position: absolute;
+  right: 8px;
+  top: 7px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(76, 29, 149, 0.12);
+  border: 1px solid rgba(76, 29, 149, 0.26);
+  color: var(--g-primary);
+  font-weight: 950;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gTimeList {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gTimeRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(248, 250, 252, 0.95);
+  text-align: left;
+}
+
+.gTimeRowOn {
+  border: 2px solid var(--g-primary);
+  background: rgba(76, 29, 149, 0.1);
+  box-shadow: 0 0 0 3px rgba(76, 29, 149, 0.2);
+}
+
+.gTimeHm {
+  font-size: 15px;
+  font-weight: 950;
+  color: #0f172a;
+}
+
+.gTimeRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gTimeTally {
+  min-width: 26px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 950;
+  font-size: 12px;
+  color: #0f172a;
+}
+
+.gTimeTallyOn {
+  background: rgba(76, 29, 149, 0.12);
+  border: 1px solid rgba(76, 29, 149, 0.26);
+  color: var(--g-primary);
+}
