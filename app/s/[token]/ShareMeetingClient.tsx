@@ -1407,7 +1407,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
                 className="gPillBtn gPillDanger"
                 disabled={busy}
                 onClick={() => void performLeaveMeeting()}>
-                {busy ? '처리 중…' : '나가기'}
+                {busy ? '처리 중…' : '나가기/재투표'}
               </button>
             </div>
           </div>
