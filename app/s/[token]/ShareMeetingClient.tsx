@@ -19,6 +19,17 @@ function asStr(v: unknown): string {
   return typeof v === 'string' ? v.trim() : '';
 }
 
+/** Supabase 요청이 끝나지 않을 때 로딩이 무한히 보이지 않도록 */
+function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(timeoutMessage)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timer !== undefined) clearTimeout(timer);
+  });
+}
+
 /** 앱 user id 비교용(이메일 PK는 소문자) */
 function normalizeParticipantKey(raw: string): string {
   const t = raw.trim();
@@ -175,6 +186,9 @@ function formatMeetingShareRpcError(raw: string): string {
   }
   if (m.includes('meeting_share_invalid_guest') || m.includes('meeting_share_invalid_guest_id')) {
     return '참여 정보를 확인할 수 없어요. 페이지를 새로고침한 뒤 다시 시도해 주세요.';
+  }
+  if (m.includes('cannot extract elements from a scalar')) {
+    return '모임 저장 데이터 형식 문제로 나가기를 처리하지 못했어요. 서버를 최신으로 올린 뒤 다시 시도해 주세요.';
   }
   return raw.trim() || '오류가 발생했어요.';
 }
@@ -451,7 +465,12 @@ export default function ShareMeetingClient({ token }: { token: string }) {
     setErr(null);
     try {
       const sb = getSupabaseBrowser();
-      const { data, error } = await sb.rpc('meeting_share_guest_get', { p_token: token });
+      const guestGetPromise = Promise.resolve(sb.rpc('meeting_share_guest_get', { p_token: token }));
+      const { data, error } = await withTimeout(
+        guestGetPromise,
+        28_000,
+        '연결 시간이 초과되었어요. 네트워크를 확인하거나, 배포(Vercel)에 NEXT_PUBLIC_SUPABASE_URL·NEXT_PUBLIC_SUPABASE_ANON_KEY가 맞게 들어갔는지 확인해 주세요.',
+      );
       if (error) throw new Error(error.message);
       const row = data as { meeting?: LooseDoc; requiresHostApproval?: boolean } | null;
       const m = row?.meeting;
@@ -696,7 +715,8 @@ export default function ShareMeetingClient({ token }: { token: string }) {
       setSelectedMovies([]);
       await load();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : '모임 나가기에 실패했어요.');
+      const raw = e instanceof Error ? e.message : '모임 나가기에 실패했어요.';
+      setErr(formatMeetingShareRpcError(raw));
     } finally {
       setBusy(false);
     }
@@ -961,18 +981,18 @@ export default function ShareMeetingClient({ token }: { token: string }) {
                     <div className="gConfirmPlaceMeta">{address}</div>
                   ) : null}
 
-                  <div className="gConfirmBtnRow" aria-label="확정 장소 액션">
+                  <div className="gConfirmBtnRow" aria-label="확정 장소 정보·지도">
                     {asStr(confirmedPlace.p.naverPlaceLink) ? (
                       <a
                         className="gConfirmActionBtn"
                         href={asStr(confirmedPlace.p.naverPlaceLink)}
                         target="_blank"
                         rel="noreferrer">
-                        상세 정보
+                        정보
                       </a>
                     ) : (
                       <div className="gConfirmActionBtnDisabled" aria-hidden>
-                        상세 정보
+                        정보
                       </div>
                     )}
 
@@ -986,11 +1006,11 @@ export default function ShareMeetingClient({ token }: { token: string }) {
                         )}`}
                         target="_blank"
                         rel="noreferrer">
-                        지도 보기
+                        지도
                       </a>
                     ) : (
                       <div className="gConfirmActionBtnDisabled" aria-hidden>
-                        지도 보기
+                        지도
                       </div>
                     )}
                   </div>
