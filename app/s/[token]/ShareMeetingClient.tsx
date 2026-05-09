@@ -380,27 +380,45 @@ export default function ShareMeetingClient({ token }: { token: string }) {
   }, [calendarMonth, initialCalendarMonth]);
 
   const sortedPlaceCandidates = useMemo(() => {
-    return placeCandidates.map((p, i) => {
+    const rows = placeCandidates.map((p, i) => {
       const id = placeChipId(p, i);
       const name = asStr(p.placeName) || '장소';
       const base = tallyFromBucket(placeTallyBucket, id);
       const tally = base + (!joined && selectedPlaces.includes(id) ? 1 : 0);
-      return { p, i, id, name, tally };
+      return { p, i, id, name, tally, sortTally: base };
     });
+    rows.sort((a, b) =>
+      compareByTallyThenLabel({ tally: a.sortTally, label: a.name }, { tally: b.sortTally, label: b.name }),
+    );
+    return rows.map(({ p, i, id, name, tally }) => ({ p, i, id, name, tally }));
   }, [placeCandidates, placeTallyBucket, selectedPlaces, joined]);
 
   const sortedMovieExtras = useMemo(() => {
-    return movieExtras.map((m, i) => {
+    const rows = movieExtras.map((m, i) => {
       const id = movieChipId(m, i);
       const label = asStr(m.title) || id;
       const base = tallyFromBucket(movieTallyBucket, id);
       const tally = base + (!joined && selectedMovies.includes(id) ? 1 : 0);
-      return { m, i, id, label, tally };
+      return { m, i, id, label, tally, sortTally: base };
     });
+    rows.sort((a, b) =>
+      compareByTallyThenLabel({ tally: a.sortTally, label: a.label }, { tally: b.sortTally, label: b.label }),
+    );
+    return rows.map(({ m, i, id, label, tally }) => ({ m, i, id, label, tally }));
   }, [movieExtras, movieTallyBucket, selectedMovies, joined]);
 
   const confirmedDateChipId = useMemo(() => asStr(meeting?.confirmedDateChipId), [meeting]);
   const confirmedPlaceChipId = useMemo(() => asStr(meeting?.confirmedPlaceChipId), [meeting]);
+
+  /** 기본 정보 카드: 일정·장소 다중 후보 + 미확정일 때 투표중 표시 */
+  const basicInfoDateIsVoting = useMemo(
+    () => !scheduleConfirmed && dateCandidates.length > 1,
+    [scheduleConfirmed, dateCandidates.length],
+  );
+  const basicInfoPlaceIsVoting = useMemo(
+    () => placeCandidates.length > 1 && !confirmedPlaceChipId,
+    [placeCandidates.length, confirmedPlaceChipId],
+  );
 
   const confirmedDateLabel = useMemo(() => {
     if (confirmedDateChipId) {
@@ -873,12 +891,18 @@ export default function ShareMeetingClient({ token }: { token: string }) {
           ) : null}
           <div>
             <div className="gInfoLabel">일정</div>
-            <div className="gInfoValue">{[scheduleDate, scheduleTime].filter(Boolean).join(' · ') || '미정'}</div>
+            <div className="gInfoValue">
+              {basicInfoDateIsVoting ? '투표중' : [scheduleDate, scheduleTime].filter(Boolean).join(' · ') || '미정'}
+            </div>
           </div>
           <div>
             <div className="gInfoLabel">장소</div>
-            <div className="gInfoValue">{placeName || '미정'}</div>
-            {address ? <div className="gSectionSub" style={{ marginTop: 6 }}>{address}</div> : null}
+            <div className="gInfoValue">{basicInfoPlaceIsVoting ? '투표중' : placeName || '미정'}</div>
+            {!basicInfoPlaceIsVoting && address ? (
+              <div className="gSectionSub" style={{ marginTop: 6 }}>
+                {address}
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
