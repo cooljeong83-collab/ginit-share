@@ -1,5 +1,6 @@
 'use client';
 
+import { buildGinitMeetingIcs, resolveShareMeetingEventYmdHm } from '@/lib/meeting-device-calendar';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import {
   useCallback,
@@ -226,6 +227,28 @@ function SvgLeaveMeetingIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" />
+    </svg>
+  );
+}
+
+function SvgCalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <path
+        d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M15.695 13.7h.009M15.695 16.7h.009M11.994 13.7h.01M11.994 16.7h.01M8.294 13.7h.01M8.294 16.7h.01"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -682,26 +705,50 @@ export default function ShareMeetingClient({ token }: { token: string }) {
     return `${base}/meeting/${mid}`;
   }, [meetingId]);
 
-  /**
-   * 앱 모임 상세의「캘린더 저장」과 동일하게 OS 달력으로 넘기기 위한 딥링크.
-   * `NEXT_PUBLIC_GINIT_APP_MEETING_CALENDAR_URL` 에 전체 URL을 두거나 `{meetingId}` 치환.
-   * 미설정 시 `NEXT_PUBLIC_GINIT_APP_OPEN_URL` 베이스에 `/meeting/<id>/calendar` (기본 `ginitapp://meeting/<id>/calendar`).
-   */
-  const openMeetingCalendarAppUrl = useMemo(() => {
-    const midRaw = meetingId.trim();
-    if (!midRaw) return '';
-    const tpl = (process.env.NEXT_PUBLIC_GINIT_APP_MEETING_CALENDAR_URL || '').trim();
-    if (tpl) {
-      return tpl.replace(/\{meetingId\}/gi, midRaw).replace(/\{id\}/gi, midRaw);
-    }
-    const mid = encodeURIComponent(midRaw);
-    const raw = (process.env.NEXT_PUBLIC_GINIT_APP_OPEN_URL || '').trim();
-    const base = raw.replace(/\/+$/, '');
-    if (!base || /^ginitapp:\/\/?$/i.test(base) || base.toLowerCase() === 'ginitapp:') {
-      return `ginitapp://meeting/${mid}/calendar`;
-    }
-    return `${base}/meeting/${mid}/calendar`;
-  }, [meetingId]);
+  const canSaveDeviceCalendar = useMemo(() => {
+    if (!meeting || !meetingId.trim() || !joined || !scheduleConfirmed) return false;
+    return resolveShareMeetingEventYmdHm(meeting, confirmedDateChipId, sortedDateCandidates, dateCandidates) != null;
+  }, [meeting, meetingId, joined, scheduleConfirmed, confirmedDateChipId, sortedDateCandidates, dateCandidates]);
+
+  const handleDeviceCalendarSave = useCallback(() => {
+    const m = meeting;
+    if (!m || !meetingId.trim()) return;
+    const ymdHm = resolveShareMeetingEventYmdHm(m, confirmedDateChipId, sortedDateCandidates, dateCandidates);
+    if (!ymdHm) return;
+    const addressOnly = asStr(confirmedPlace?.p.address) || asStr(m.address) || '';
+    const placeTradeName = (confirmedPlace?.name || asStr(m.placeName) || '').trim();
+    const placeLine =
+      placeTradeName && addressOnly
+        ? `장소 : ${placeTradeName} (${addressOnly})`
+        : placeTradeName
+          ? `장소 : ${placeTradeName}`
+          : addressOnly
+            ? `장소 : (${addressOnly})`
+            : '';
+    const href = typeof window !== 'undefined' ? window.location.href : '';
+    const rawTitle = (asStr(m.title) || '모임').trim() || '모임';
+    const summaryTitle = rawTitle.startsWith('[지닛]') ? rawTitle : `[지닛] ${rawTitle}`;
+    const descBits = [asStr(m.description), placeLine, href].filter(Boolean);
+    const ics = buildGinitMeetingIcs({
+      uidBase: meetingId,
+      title: summaryTitle,
+      description: descBits.join('\n\n'),
+      location: addressOnly,
+      dateYmd: ymdHm.ymd,
+      timeHm: ymdHm.hm,
+    });
+    if (!ics) return;
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const safe = meetingId.replace(/[^a-zA-Z0-9-]+/g, '-').slice(0, 40) || 'meeting';
+    a.download = `ginit-${safe}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [meeting, meetingId, confirmedDateChipId, sortedDateCandidates, dateCandidates, confirmedPlace]);
 
   const handleJoinOrRequest = async () => {
     if (!meetingId) return;
@@ -1043,17 +1090,6 @@ export default function ShareMeetingClient({ token }: { token: string }) {
               <div className="gInfoValue">{confirmedDateLabel || [scheduleDate, scheduleTime].filter(Boolean).join(' · ') || '미정'}</div>
             </div>
           </div>
-
-          {joined && treatAsConfirmed && openMeetingCalendarAppUrl ? (
-            <div className="gConfirmBtnRow gConfirmBtnRowSingle" aria-label="일정 캘린더 저장">
-              <a
-                className="gConfirmActionBtn"
-                href={openMeetingCalendarAppUrl}
-                aria-label="지닛 앱에서 일정을 캘린더에 저장">
-                캘린더 저장
-              </a>
-            </div>
-          ) : null}
 
           {confirmedPlace ? (
             <>
@@ -1487,6 +1523,18 @@ export default function ShareMeetingClient({ token }: { token: string }) {
               {busy ? '처리 중…' : joined ? '나가기/재투표' : '게스트 참여'}
             </button>
           )}
+          {canSaveDeviceCalendar ? (
+            <button
+              type="button"
+              className="gPillBtn gPillPrimary gPillCalendarSave"
+              onClick={() => void handleDeviceCalendarSave()}
+              aria-label="확정 일정을 휴대폰 캘린더에 저장">
+              <span className="gPillBtnSymbol" aria-hidden>
+                <SvgCalendarIcon />
+              </span>
+              캘린더 저장하기
+            </button>
+          ) : null}
           <a href={openInAppUrl} className="gPillBtn gPillPrimary">
             <img src="/ginit-logo.png" alt="" className="gPillBtnLogo" width={22} height={22} />
             지닛 참여
