@@ -1064,6 +1064,9 @@ a.gPillBtn.gPillPrimary:visited {
 .gCalendarCellOn {
   min-height: 58px;
   padding: 5px 5px;
+  width: fit-content;
+  max-width: 100%;
+  justify-self: center;
 }
 
 .gCalendarCellEmpty {
@@ -1103,6 +1106,8 @@ a.gPillBtn.gPillPrimary:visited {
 .gCalendarCellOn .gCalDayNum {
   font-size: 12px;
   line-height: 1.15;
+  width: auto;
+  align-self: center;
 }
 
 .gCalTimes {
@@ -1112,11 +1117,17 @@ a.gPillBtn.gPillPrimary:visited {
   gap: 2px;
 }
 
+.gCalendarCellOn .gCalTimes {
+  align-self: center;
+  width: fit-content;
+  max-width: 100%;
+}
+
 .gCalTimeRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 4px;
+  justify-content: flex-start;
+  gap: 5px;
 }
 
 .gCalTimeHm {
