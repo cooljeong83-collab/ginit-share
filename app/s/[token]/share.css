@@ -1010,34 +1010,67 @@ a.gPillBtn.gPillPrimary:visited {
   color: #0f172a;
 }
 
-.gCalendarDow {
-  margin-top: 10px;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+/* 달력: 주마다 7열 — 요일·날짜를 한 열에 쌓아 같은 주 안에서 높이가 함께 늘어남 */
+.gCalendarMatrix {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+  margin-top: 6px;
+}
+
+.gCalendarWeekRow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+  align-items: stretch;
+}
+
+.gCalendarColumnStack {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  min-height: 0;
 }
 
 .gCalendarDowCell {
+  flex: 1 1 0;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 11px;
   font-weight: 900;
   color: #94a3b8;
   text-align: center;
+  border-radius: 10px;
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
-.gCalendarGrid {
-  margin-top: 8px;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+/* 후보 있는 날만 최소 높이 — 없는 날·빈 칸은 카드 폭 안에서 덜 차지 */
+.gCalendarColumnStack > .gCalendarCell.gCalendarCellOn {
+  flex: 1 1 0;
+  min-height: 48px;
+}
+
+.gCalendarColumnStack > button.gCalendarCell.gCalendarCellOff,
+.gCalendarColumnStack > .gCalendarCellEmpty {
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 .gCalendarCell {
   position: relative;
-  min-height: 44px;
-  border-radius: 16px;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 0;
+  border-radius: 12px;
   border: 1px solid rgba(15, 23, 42, 0.08);
   background: rgba(248, 250, 252, 0.95);
-  padding: 8px 8px;
+  padding: 6px 6px;
   text-align: left;
   display: flex;
   flex-direction: column;
@@ -1045,16 +1078,28 @@ a.gPillBtn.gPillPrimary:visited {
 }
 
 .gCalendarCellOn {
-  min-height: 72px;
+  min-height: 58px;
+  padding: 5px 5px;
 }
 
 .gCalendarCellEmpty {
   border: 0;
   background: transparent;
+  padding: 0;
+  margin: 0;
+  min-height: 0;
 }
 
 .gCalendarCellOff {
   opacity: 0.45;
+  padding: 2px 3px;
+  min-height: 0;
+  border-color: rgba(15, 23, 42, 0.05);
+}
+
+.gCalendarCellOff .gCalDayNum {
+  font-size: 12px;
+  line-height: 1.1;
 }
 
 .gCalendarCellSelected {
@@ -1064,23 +1109,30 @@ a.gPillBtn.gPillPrimary:visited {
 }
 
 .gCalDayNum {
+  width: 100%;
+  text-align: center;
   font-weight: 950;
   color: #0f172a;
   font-size: 13px;
 }
 
+.gCalendarCellOn .gCalDayNum {
+  font-size: 12px;
+  line-height: 1.15;
+}
+
 .gCalTimes {
-  margin-top: 6px;
+  margin-top: 4px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .gCalTimeRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
 }
 
 .gCalTimeHm {
@@ -1091,9 +1143,9 @@ a.gPillBtn.gPillPrimary:visited {
 }
 
 .gCalTimeTally {
-  min-width: 18px;
-  height: 16px;
-  padding: 0 6px;
+  min-width: 16px;
+  height: 15px;
+  padding: 0 4px;
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.06);
   border: 1px solid rgba(15, 23, 42, 0.08);
@@ -1106,7 +1158,7 @@ a.gPillBtn.gPillPrimary:visited {
 }
 
 .gCalTimeMore {
-  margin-top: 2px;
+  margin-top: 1px;
   font-size: 10px;
   font-weight: 950;
   color: rgba(15, 23, 42, 0.52);
@@ -1114,10 +1166,10 @@ a.gPillBtn.gPillPrimary:visited {
 
 .gCalCheck {
   position: absolute;
-  right: 8px;
-  top: 7px;
-  width: 18px;
-  height: 18px;
+  right: 4px;
+  top: 4px;
+  width: 17px;
+  height: 17px;
   border-radius: 999px;
   background: rgba(76, 29, 149, 0.12);
   border: 1px solid rgba(76, 29, 149, 0.26);

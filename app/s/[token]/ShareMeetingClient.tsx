@@ -8,6 +8,7 @@ import {
   useState,
   useRef,
   type Dispatch,
+  type ReactNode,
   type SetStateAction,
 } from 'react';
 
@@ -1113,22 +1114,15 @@ export default function ShareMeetingClient({ token }: { token: string }) {
             </button>
           </div>
 
-          <div className="gCalendarDow">
-            {['일', '월', '화', '수', '목', '금', '토'].map((d) => (
-              <div key={d} className="gCalendarDowCell">
-                {d}
-              </div>
-            ))}
-          </div>
-
-          <div className="gCalendarGrid" role="grid" aria-label="달력">
+          <div className="gCalendarMatrix" role="grid" aria-label="달력">
             {(() => {
               if (!/^\d{4}-\d{2}$/.test(calendarMonth)) return null;
+              const dow = ['일', '월', '화', '수', '목', '금', '토'] as const;
               const [yy, mm] = calendarMonth.split('-').map((x) => Number(x));
               const first = new Date(yy, mm - 1, 1);
-              const startDow = first.getDay(); // 0..6 (Sun..Sat)
+              const startDow = first.getDay();
               const daysInMonth = new Date(yy, mm, 0).getDate();
-              const cells = [];
+              const cells: Array<{ kind: 'empty'; key: string } | { kind: 'day'; ymd: string; day: number; enabled: boolean; selected: boolean; tally: number }> = [];
               for (let i = 0; i < startDow; i++) cells.push({ kind: 'empty', key: `e-${i}` } as const);
               for (let day = 1; day <= daysInMonth; day++) {
                 const ymd = `${yy}-${String(mm).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -1138,11 +1132,17 @@ export default function ShareMeetingClient({ token }: { token: string }) {
                 const tally = meta?.tally ?? 0;
                 cells.push({ kind: 'day', ymd, day, enabled, selected, tally } as const);
               }
-              return cells.map((c) => {
-                if (c.kind === 'empty') return <div key={c.key} className="gCalendarCell gCalendarCellEmpty" />;
+              while (cells.length % 7 !== 0) {
+                cells.push({ kind: 'empty', key: `pad-${cells.length}` } as const);
+              }
+              const weeks: (typeof cells)[] = [];
+              for (let i = 0; i < cells.length; i += 7) {
+                weeks.push(cells.slice(i, i + 7));
+              }
+              const renderBody = (c: (typeof cells)[number]): ReactNode => {
+                if (c.kind === 'empty') return <div className="gCalendarCell gCalendarCellEmpty" />;
                 return (
                   <button
-                    key={c.ymd}
                     type="button"
                     role="gridcell"
                     disabled={!c.enabled || joined}
@@ -1167,7 +1167,19 @@ export default function ShareMeetingClient({ token }: { token: string }) {
                     {c.selected ? <div className="gCalCheck">✓</div> : null}
                   </button>
                 );
-              });
+              };
+              return weeks.map((week, wi) => (
+                <div key={`w-${wi}`} className="gCalendarWeekRow" role="row">
+                  {week.map((c, col) => (
+                    <div key={c.kind === 'empty' ? c.key : c.ymd} className="gCalendarColumnStack">
+                      <div className="gCalendarDowCell" aria-hidden>
+                        {dow[col]}
+                      </div>
+                      {renderBody(c)}
+                    </div>
+                  ))}
+                </div>
+              ));
             })()}
           </div>
         </section>
