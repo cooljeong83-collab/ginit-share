@@ -1173,7 +1173,6 @@ export default function ShareMeetingClient({ token }: { token: string }) {
                         ) : null}
                       </div>
                     ) : null}
-                    {c.selected ? <div className="gCalCheck">✓</div> : null}
                   </button>
                 );
               };
