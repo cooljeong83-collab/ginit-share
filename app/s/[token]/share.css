@@ -1015,6 +1015,8 @@ a.gPillBtn.gPillPrimary:visited {
   display: grid;
   grid-auto-rows: auto;
   align-items: stretch;
+  justify-content: start;
+  width: 100%;
   gap: 5px;
   margin-top: 6px;
   min-width: 0;
@@ -1042,6 +1044,13 @@ a.gPillBtn.gPillPrimary:visited {
 .gCalendarMatrix > button.gCalendarCell.gCalendarCellOff,
 .gCalendarMatrix > .gCalendarCellEmpty {
   min-height: 0;
+}
+
+/* max-content 열에서 width:100%가 열을 불필요하게 넓히지 않도록 */
+.gCalendarMatrix > button.gCalendarCell.gCalendarCellOff {
+  width: fit-content;
+  max-width: 100%;
+  justify-self: center;
 }
 
 .gCalendarCell {

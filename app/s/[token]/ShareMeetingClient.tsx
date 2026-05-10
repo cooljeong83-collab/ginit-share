@@ -1145,9 +1145,12 @@ export default function ShareMeetingClient({ token }: { token: string }) {
                   if (c.kind === 'day' && c.enabled) colHasCandidate[col] = true;
                 });
               }
-              const colWide = 'minmax(0, 2.15fr)';
-              const colNarrow = 'minmax(0, 0.68fr)';
-              const gridTemplateColumns = colHasCandidate.map((w) => (w ? colWide : colNarrow)).join(' ');
+              /* 후보 열: 셀 내용(max-content)만큼만 — fr은 남는 폭을 후보 열까지 늘려 과하게 넓어짐 */
+              const colWithCandidates = 'max-content';
+              const colWithoutCandidates = 'minmax(0, 1fr)';
+              const gridTemplateColumns = colHasCandidate
+                .map((has) => (has ? colWithCandidates : colWithoutCandidates))
+                .join(' ');
               const renderBody = (c: (typeof cells)[number]): ReactNode => {
                 if (c.kind === 'empty') return <div className="gCalendarCell gCalendarCellEmpty" />;
                 return (
