@@ -492,6 +492,13 @@ export default function ShareMeetingClient({ token }: { token: string }) {
   }, [confirmedPlace, confirmedPlaceLatLng, meeting?.address]);
 
   const heroPlaceThumbs = useMemo(() => {
+    if (scheduleConfirmed) {
+      if (confirmedPlace) {
+        const u = confirmedPlaceThumb.trim();
+        if (u.startsWith('https://') || u.startsWith('http://')) return [u];
+      }
+      return [];
+    }
     const urls: string[] = [];
     for (const { p, id } of sortedPlaceCandidates) {
       const u =
@@ -502,7 +509,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
       if (u.startsWith('https://')) urls.push(u);
     }
     return urls;
-  }, [sortedPlaceCandidates, placeThumbById]);
+  }, [scheduleConfirmed, confirmedPlace, confirmedPlaceThumb, sortedPlaceCandidates, placeThumbById]);
 
   const load = useCallback(async () => {
     setPhase('loading');
@@ -877,7 +884,9 @@ export default function ShareMeetingClient({ token }: { token: string }) {
     <main className="gShell">
       <header className="gHero">
         <div className="gHeroImage">
-          {heroPlaceThumbs.length > 0 ? (
+          {heroPlaceThumbs.length === 1 ? (
+            <img src={heroPlaceThumbs[0]} alt="" />
+          ) : heroPlaceThumbs.length > 1 ? (
             <div className="gHeroThumbRow" aria-hidden>
               {heroPlaceThumbs.map((u, idx) => (
                 <div className="gHeroThumbCell" key={`${idx}-${u}`}>
