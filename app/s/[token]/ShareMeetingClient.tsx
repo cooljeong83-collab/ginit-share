@@ -19,6 +19,17 @@ function asStr(v: unknown): string {
   return typeof v === 'string' ? v.trim() : '';
 }
 
+/** Supabase 요청이 끝나지 않을 때 로딩이 무한히 보이지 않도록 */
+function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(timeoutMessage)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timer !== undefined) clearTimeout(timer);
+  });
+}
+
 /** 앱 user id 비교용(이메일 PK는 소문자) */
 function normalizeParticipantKey(raw: string): string {
   const t = raw.trim();
@@ -176,6 +187,9 @@ function formatMeetingShareRpcError(raw: string): string {
   if (m.includes('meeting_share_invalid_guest') || m.includes('meeting_share_invalid_guest_id')) {
     return '참여 정보를 확인할 수 없어요. 페이지를 새로고침한 뒤 다시 시도해 주세요.';
   }
+  if (m.includes('cannot extract elements from a scalar')) {
+    return '모임 저장 데이터 형식 문제로 나가기를 처리하지 못했어요. 서버를 최신으로 올린 뒤 다시 시도해 주세요.';
+  }
   return raw.trim() || '오류가 발생했어요.';
 }
 
@@ -315,6 +329,22 @@ export default function ShareMeetingClient({ token }: { token: string }) {
     return map;
   }, [meeting]);
 
+  /** meeting_share_guest_get → profiles 기반 앱 참여자 닉네임·사진 (키: 정규화된 app user id) */
+  const participantPublicByUserId = useMemo(() => {
+    const map = new Map<string, { nickname: string; photoUrl: string }>();
+    const raw = meeting?.participantPublicByUserId;
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return map;
+    const o = raw as Record<string, unknown>;
+    for (const [k, v] of Object.entries(o)) {
+      if (!k || typeof v !== 'object' || v === null || Array.isArray(v)) continue;
+      const vo = v as LooseDoc;
+      const nick = asStr(vo.nickname);
+      const photo = asStr(vo.photoUrl);
+      map.set(normalizeParticipantKey(k), { nickname: nick, photoUrl: photo });
+    }
+    return map;
+  }, [meeting]);
+
   const sortedDateCandidates = useMemo(() => {
     return [...dateCandidates]
       .map((d, i) => {
@@ -366,27 +396,45 @@ export default function ShareMeetingClient({ token }: { token: string }) {
   }, [calendarMonth, initialCalendarMonth]);
 
   const sortedPlaceCandidates = useMemo(() => {
-    return placeCandidates.map((p, i) => {
+    const rows = placeCandidates.map((p, i) => {
       const id = placeChipId(p, i);
       const name = asStr(p.placeName) || '장소';
       const base = tallyFromBucket(placeTallyBucket, id);
       const tally = base + (!joined && selectedPlaces.includes(id) ? 1 : 0);
-      return { p, i, id, name, tally };
+      return { p, i, id, name, tally, sortTally: base };
     });
+    rows.sort((a, b) =>
+      compareByTallyThenLabel({ tally: a.sortTally, label: a.name }, { tally: b.sortTally, label: b.name }),
+    );
+    return rows.map(({ p, i, id, name, tally }) => ({ p, i, id, name, tally }));
   }, [placeCandidates, placeTallyBucket, selectedPlaces, joined]);
 
   const sortedMovieExtras = useMemo(() => {
-    return movieExtras.map((m, i) => {
+    const rows = movieExtras.map((m, i) => {
       const id = movieChipId(m, i);
       const label = asStr(m.title) || id;
       const base = tallyFromBucket(movieTallyBucket, id);
       const tally = base + (!joined && selectedMovies.includes(id) ? 1 : 0);
-      return { m, i, id, label, tally };
+      return { m, i, id, label, tally, sortTally: base };
     });
+    rows.sort((a, b) =>
+      compareByTallyThenLabel({ tally: a.sortTally, label: a.label }, { tally: b.sortTally, label: b.label }),
+    );
+    return rows.map(({ m, i, id, label, tally }) => ({ m, i, id, label, tally }));
   }, [movieExtras, movieTallyBucket, selectedMovies, joined]);
 
   const confirmedDateChipId = useMemo(() => asStr(meeting?.confirmedDateChipId), [meeting]);
   const confirmedPlaceChipId = useMemo(() => asStr(meeting?.confirmedPlaceChipId), [meeting]);
+
+  /** 기본 정보 카드: 일정·장소 다중 후보 + 미확정일 때 투표중 표시 */
+  const basicInfoDateIsVoting = useMemo(
+    () => !scheduleConfirmed && dateCandidates.length > 1,
+    [scheduleConfirmed, dateCandidates.length],
+  );
+  const basicInfoPlaceIsVoting = useMemo(
+    () => placeCandidates.length > 1 && !confirmedPlaceChipId,
+    [placeCandidates.length, confirmedPlaceChipId],
+  );
 
   const confirmedDateLabel = useMemo(() => {
     if (confirmedDateChipId) {
@@ -433,6 +481,16 @@ export default function ShareMeetingClient({ token }: { token: string }) {
     return { lat, lng };
   }, [confirmedPlace]);
 
+  /** 확정 장소 지도: 상호 제외, 주소만 검색어로 사용 (주소 없으면 좌표 문자열) */
+  const confirmedPlaceNaverMapHref = useMemo(() => {
+    if (!confirmedPlaceLatLng || !confirmedPlace) return '';
+    const addrOnly = asStr(confirmedPlace.p.address).trim() || asStr(meeting?.address).trim() || '';
+    const q = addrOnly || `${confirmedPlaceLatLng.lat},${confirmedPlaceLatLng.lng}`;
+    return `https://map.naver.com/v5/search/${encodeURIComponent(q)}?c=${encodeURIComponent(
+      `${confirmedPlaceLatLng.lng},${confirmedPlaceLatLng.lat},16,0,0,0,dh`,
+    )}`;
+  }, [confirmedPlace, confirmedPlaceLatLng, meeting?.address]);
+
   const heroPlaceThumbs = useMemo(() => {
     const urls: string[] = [];
     for (const { p, id } of sortedPlaceCandidates) {
@@ -451,7 +509,12 @@ export default function ShareMeetingClient({ token }: { token: string }) {
     setErr(null);
     try {
       const sb = getSupabaseBrowser();
-      const { data, error } = await sb.rpc('meeting_share_guest_get', { p_token: token });
+      const guestGetPromise = Promise.resolve(sb.rpc('meeting_share_guest_get', { p_token: token }));
+      const { data, error } = await withTimeout(
+        guestGetPromise,
+        28_000,
+        '연결 시간이 초과되었어요. 네트워크를 확인하거나, 배포(Vercel)에 NEXT_PUBLIC_SUPABASE_URL·NEXT_PUBLIC_SUPABASE_ANON_KEY가 맞게 들어갔는지 확인해 주세요.',
+      );
       if (error) throw new Error(error.message);
       const row = data as { meeting?: LooseDoc; requiresHostApproval?: boolean } | null;
       const m = row?.meeting;
@@ -696,7 +759,8 @@ export default function ShareMeetingClient({ token }: { token: string }) {
       setSelectedMovies([]);
       await load();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : '모임 나가기에 실패했어요.');
+      const raw = e instanceof Error ? e.message : '모임 나가기에 실패했어요.';
+      setErr(formatMeetingShareRpcError(raw));
     } finally {
       setBusy(false);
     }
@@ -853,55 +917,63 @@ export default function ShareMeetingClient({ token }: { token: string }) {
           ) : null}
           <div>
             <div className="gInfoLabel">일정</div>
-            <div className="gInfoValue">{[scheduleDate, scheduleTime].filter(Boolean).join(' · ') || '미정'}</div>
+            <div className="gInfoValue">
+              {basicInfoDateIsVoting ? '투표중' : [scheduleDate, scheduleTime].filter(Boolean).join(' · ') || '미정'}
+            </div>
           </div>
           <div>
             <div className="gInfoLabel">장소</div>
-            <div className="gInfoValue">{placeName || '미정'}</div>
-            {address ? <div className="gSectionSub" style={{ marginTop: 6 }}>{address}</div> : null}
+            <div className="gInfoValue">{basicInfoPlaceIsVoting ? '투표중' : placeName || '미정'}</div>
+            {!basicInfoPlaceIsVoting && address ? (
+              <div className="gSectionSub" style={{ marginTop: 6 }}>
+                {address}
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
 
-      <section ref={participantNameSectionRef} className="gCard" aria-label="참여자명">
-        <h2 className="gSectionTitle gSectionTitleRow">
-          참여자명
-          {!joined ? (
-            <span className="gRequiredPill" aria-hidden>
-              필수
-            </span>
-          ) : null}
-        </h2>
-        <p className="gSectionSub">
-          {joined
-            ? '참여 시 입력한 이름이에요.'
-            : '참여자 목록과 투표에 표시돼요. 게스트 참여 전에 입력해 주세요.'}
-        </p>
-        {!joined ? (
-          <>
-            <input
-              value={displayName}
-              onChange={(e) => {
-                setParticipantNameError('');
-                setDisplayName(e.target.value.slice(0, 40));
-              }}
-              placeholder="참여자명을 입력하세요"
-              className={`gInput ${participantNameError ? 'gInputInvalid' : ''}`}
-              aria-invalid={Boolean(participantNameError)}
-              aria-required
-            />
-            {participantNameError ? (
-              <p className="gAlert" role="alert" style={{ marginTop: 10 }}>
-                {participantNameError}
-              </p>
+      {(joined || !scheduleConfirmed) && (
+        <section ref={participantNameSectionRef} className="gCard" aria-label="참여자명">
+          <h2 className="gSectionTitle gSectionTitleRow">
+            참여자명
+            {!joined ? (
+              <span className="gRequiredPill" aria-hidden>
+                필수
+              </span>
             ) : null}
-          </>
-        ) : (
-          <div className="gInfoValue" style={{ fontWeight: 800 }}>
-            {displayName.trim() || '—'}
-          </div>
-        )}
-      </section>
+          </h2>
+          <p className="gSectionSub">
+            {joined
+              ? '참여 시 입력한 이름이에요.'
+              : '참여자 목록과 투표에 표시돼요. 게스트 참여 전에 입력해 주세요.'}
+          </p>
+          {!joined ? (
+            <>
+              <input
+                value={displayName}
+                onChange={(e) => {
+                  setParticipantNameError('');
+                  setDisplayName(e.target.value.slice(0, 40));
+                }}
+                placeholder="참여자명을 입력하세요"
+                className={`gInput ${participantNameError ? 'gInputInvalid' : ''}`}
+                aria-invalid={Boolean(participantNameError)}
+                aria-required
+              />
+              {participantNameError ? (
+                <p className="gAlert" role="alert" style={{ marginTop: 10 }}>
+                  {participantNameError}
+                </p>
+              ) : null}
+            </>
+          ) : (
+            <div className="gInfoValue" style={{ fontWeight: 800 }}>
+              {displayName.trim() || '—'}
+            </div>
+          )}
+        </section>
+      )}
 
       {joined && !treatAsConfirmed && (dateCandidates.length > 1 || placeCandidates.length > 1 || movieExtras.length > 1) ? (
         <div className="gHintCallout gHintCalloutWarn" role="note">
@@ -961,36 +1033,32 @@ export default function ShareMeetingClient({ token }: { token: string }) {
                     <div className="gConfirmPlaceMeta">{address}</div>
                   ) : null}
 
-                  <div className="gConfirmBtnRow" aria-label="확정 장소 액션">
+                  <div className="gConfirmBtnRow" aria-label="확정 장소 정보·지도">
                     {asStr(confirmedPlace.p.naverPlaceLink) ? (
                       <a
                         className="gConfirmActionBtn"
                         href={asStr(confirmedPlace.p.naverPlaceLink)}
                         target="_blank"
                         rel="noreferrer">
-                        상세 정보
+                        정보
                       </a>
                     ) : (
                       <div className="gConfirmActionBtnDisabled" aria-hidden>
-                        상세 정보
+                        정보
                       </div>
                     )}
 
-                    {confirmedPlaceLatLng ? (
+                    {confirmedPlaceLatLng && confirmedPlaceNaverMapHref ? (
                       <a
                         className="gConfirmActionBtn"
-                        href={`https://map.naver.com/v5/search/${encodeURIComponent(
-                          [confirmedPlace.name, asStr(confirmedPlace.p.address)].filter(Boolean).join(' '),
-                        )}?c=${encodeURIComponent(
-                          `${confirmedPlaceLatLng.lng},${confirmedPlaceLatLng.lat},16,0,0,0,dh`,
-                        )}`}
+                        href={confirmedPlaceNaverMapHref}
                         target="_blank"
                         rel="noreferrer">
-                        지도 보기
+                        지도
                       </a>
                     ) : (
                       <div className="gConfirmActionBtnDisabled" aria-hidden>
-                        지도 보기
+                        지도
                       </div>
                     )}
                   </div>
@@ -1263,12 +1331,19 @@ export default function ShareMeetingClient({ token }: { token: string }) {
           <div className="gAvatarRow">
             {participantIds.map((pid) => {
               const hostId = asStr(meeting.createdBy);
-              const isHost = Boolean(
-                hostId && normalizeParticipantKey(pid) === normalizeParticipantKey(hostId),
-              );
+              const pidKey = normalizeParticipantKey(pid);
+              const isHost = Boolean(hostId && pidKey === normalizeParticipantKey(hostId));
               const isGuest = pid.startsWith('ginitweb_');
               const guestNick = isGuest ? (voteLogDisplayNameByUserId.get(pid) ?? '').trim() : '';
-              const memberNick = !isGuest && !isHost ? (voteLogDisplayNameByUserId.get(pid) ?? '').trim() : '';
+              const pub = !isGuest && !isHost ? participantPublicByUserId.get(pidKey) : undefined;
+              const nickFromProfile = pub?.nickname?.trim() ?? '';
+              const photoFromProfile = pub?.photoUrl?.trim() ?? '';
+              const memberPhotoUrl =
+                photoFromProfile.startsWith('https://') || photoFromProfile.startsWith('http://')
+                  ? photoFromProfile
+                  : '';
+              const memberNickFromLog = !isGuest && !isHost ? (voteLogDisplayNameByUserId.get(pid) ?? '').trim() : '';
+              const memberNick = !isGuest && !isHost ? (nickFromProfile || memberNickFromLog) : '';
               const hostNickFromLog = isHost ? (voteLogDisplayNameByUserId.get(pid) ?? '').trim() : '';
               const primary = isHost
                 ? hostDisplayNameFromApi || hostNickFromLog || '호스트'
@@ -1279,10 +1354,17 @@ export default function ShareMeetingClient({ token }: { token: string }) {
               const sub = isGuest ? '(게스트)' : isHost ? '(호스트)' : '';
               const labelText = sub ? `${primary}\n${sub}` : primary;
               const showHostPhoto = isHost && Boolean(hostPhotoUrl);
+              const showMemberPhoto = !isHost && !isGuest && Boolean(memberPhotoUrl);
               return (
                 <div className="gAvatarCol" key={pid}>
-                  <div className={`gAvatarCircle ${showHostPhoto ? 'gAvatarCirclePhoto' : ''}`}>
-                    {showHostPhoto ? <img src={hostPhotoUrl} alt="" /> : initialsFrom(initialsSeed)}
+                  <div className={`gAvatarCircle ${showHostPhoto || showMemberPhoto ? 'gAvatarCirclePhoto' : ''}`}>
+                    {showHostPhoto ? (
+                      <img src={hostPhotoUrl} alt="" />
+                    ) : showMemberPhoto ? (
+                      <img src={memberPhotoUrl} alt="" />
+                    ) : (
+                      initialsFrom(initialsSeed)
+                    )}
                   </div>
                   <div className="gAvatarLabel">{labelText}</div>
                 </div>
@@ -1321,18 +1403,20 @@ export default function ShareMeetingClient({ token }: { token: string }) {
 
       <div className="gBottomBar">
         <div className="gBottomInner">
-          <button
-            type="button"
-            className={`gPillBtn ${joined ? 'gPillDanger' : 'gPillPrimary'}`}
-            disabled={busy}
-            onClick={() => void (joined ? setLeaveConfirmOpen(true) : handleGuestStart())}>
-            {!busy ? (
-              <span className="gPillBtnSymbol" aria-hidden>
-                {joined ? <SvgLeaveMeetingIcon /> : <SvgGuestParticipateIcon />}
-              </span>
-            ) : null}
-            {busy ? '처리 중…' : joined ? '모임 나가기' : '게스트 참여'}
-          </button>
+          {!scheduleConfirmed && (
+            <button
+              type="button"
+              className={`gPillBtn ${joined ? 'gPillDanger' : 'gPillPrimary'}`}
+              disabled={busy}
+              onClick={() => void (joined ? setLeaveConfirmOpen(true) : handleGuestStart())}>
+              {!busy ? (
+                <span className="gPillBtnSymbol" aria-hidden>
+                  {joined ? <SvgLeaveMeetingIcon /> : <SvgGuestParticipateIcon />}
+                </span>
+              ) : null}
+              {busy ? '처리 중…' : joined ? '나가기/재투표' : '게스트 참여'}
+            </button>
+          )}
           <a href={openInAppUrl} className="gPillBtn gPillPrimary">
             <img src="/ginit-logo.png" alt="" className="gPillBtnLogo" width={22} height={22} />
             지닛 참여
@@ -1341,7 +1425,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
       </div>
 
       {leaveConfirmOpen && joined ? (
-        <div className="gModalRoot" role="dialog" aria-modal="true" aria-label="모임 나가기">
+        <div className="gModalRoot" role="dialog" aria-modal="true" aria-label="모임 참여 취소 및 재투표">
           <button
             type="button"
             className="gModalBackdrop"
@@ -1349,10 +1433,10 @@ export default function ShareMeetingClient({ token }: { token: string }) {
             aria-label="닫기"
           />
           <div className="gModalCard">
-            <div className="gModalTitle">모임 참여 취소</div>
+            <div className="gModalTitle">모임 참여 취소 / 재 투표</div>
             <div className="gModalSub">
-              모임 참여가 취소됩니다. 이 브라우저에 저장된 참여·투표 정보는 서버에서 삭제되며, 목록에서도 빠져요. 같은
-              링크로 다시 참여할 수 있어요.
+              모임 참여가 취소됩니다. 이 브라우저에 저장된 참여·투표 정보는 서버에서 삭제되며, 목록에서도 빠져요.{' '}
+              <strong>같은 링크로 다시 참여할 수 있어요.</strong>
             </div>
             <div className="gConfirmBtnRow" style={{ marginTop: 14 }}>
               <button type="button" className="gPillBtn" disabled={busy} onClick={() => setLeaveConfirmOpen(false)}>
@@ -1363,7 +1447,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
                 className="gPillBtn gPillDanger"
                 disabled={busy}
                 onClick={() => void performLeaveMeeting()}>
-                {busy ? '처리 중…' : '나가기'}
+                {busy ? '처리 중…' : '나가기/재투표'}
               </button>
             </div>
           </div>
