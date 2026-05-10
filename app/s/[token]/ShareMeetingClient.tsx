@@ -1365,18 +1365,20 @@ export default function ShareMeetingClient({ token }: { token: string }) {
 
       <div className="gBottomBar">
         <div className="gBottomInner">
-          <button
-            type="button"
-            className={`gPillBtn ${joined ? 'gPillDanger' : 'gPillPrimary'}`}
-            disabled={busy}
-            onClick={() => void (joined ? setLeaveConfirmOpen(true) : handleGuestStart())}>
-            {!busy ? (
-              <span className="gPillBtnSymbol" aria-hidden>
-                {joined ? <SvgLeaveMeetingIcon /> : <SvgGuestParticipateIcon />}
-              </span>
-            ) : null}
-            {busy ? '처리 중…' : joined ? '나가기/재투표' : '게스트 참여'}
-          </button>
+          {!scheduleConfirmed && (
+            <button
+              type="button"
+              className={`gPillBtn ${joined ? 'gPillDanger' : 'gPillPrimary'}`}
+              disabled={busy}
+              onClick={() => void (joined ? setLeaveConfirmOpen(true) : handleGuestStart())}>
+              {!busy ? (
+                <span className="gPillBtnSymbol" aria-hidden>
+                  {joined ? <SvgLeaveMeetingIcon /> : <SvgGuestParticipateIcon />}
+                </span>
+              ) : null}
+              {busy ? '처리 중…' : joined ? '나가기/재투표' : '게스트 참여'}
+            </button>
+          )}
           <a href={openInAppUrl} className="gPillBtn gPillPrimary">
             <img src="/ginit-logo.png" alt="" className="gPillBtnLogo" width={22} height={22} />
             지닛 참여
