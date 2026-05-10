@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
   useRef,
+  Fragment,
   type Dispatch,
   type ReactNode,
   type SetStateAction,
@@ -1114,8 +1115,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
             </button>
           </div>
 
-          <div className="gCalendarMatrix" role="grid" aria-label="달력">
-            {(() => {
+          {(() => {
               if (!/^\d{4}-\d{2}$/.test(calendarMonth)) return null;
               const dow = ['일', '월', '화', '수', '목', '금', '토'] as const;
               const [yy, mm] = calendarMonth.split('-').map((x) => Number(x));
@@ -1139,6 +1139,15 @@ export default function ShareMeetingClient({ token }: { token: string }) {
               for (let i = 0; i < cells.length; i += 7) {
                 weeks.push(cells.slice(i, i + 7));
               }
+              const colHasCandidate = [false, false, false, false, false, false, false];
+              for (const week of weeks) {
+                week.forEach((c, col) => {
+                  if (c.kind === 'day' && c.enabled) colHasCandidate[col] = true;
+                });
+              }
+              const colWide = 'minmax(0, 2.15fr)';
+              const colNarrow = 'minmax(0, 0.68fr)';
+              const gridTemplateColumns = colHasCandidate.map((w) => (w ? colWide : colNarrow)).join(' ');
               const renderBody = (c: (typeof cells)[number]): ReactNode => {
                 if (c.kind === 'empty') return <div className="gCalendarCell gCalendarCellEmpty" />;
                 return (
@@ -1168,20 +1177,26 @@ export default function ShareMeetingClient({ token }: { token: string }) {
                   </button>
                 );
               };
-              return weeks.map((week, wi) => (
-                <div key={`w-${wi}`} className="gCalendarWeekRow" role="row">
-                  {week.map((c, col) => (
-                    <div key={c.kind === 'empty' ? c.key : c.ymd} className="gCalendarColumnStack">
-                      <div className="gCalendarDowCell" aria-hidden>
-                        {dow[col]}
-                      </div>
-                      {renderBody(c)}
+              return (
+                <div
+                  className="gCalendarMatrix"
+                  role="grid"
+                  aria-label="달력"
+                  style={{ gridTemplateColumns }}>
+                  {dow.map((label, col) => (
+                    <div key={`dow-${col}`} className="gCalendarDowCell" aria-hidden>
+                      {label}
                     </div>
                   ))}
+                  {weeks.flatMap((week, wi) =>
+                    week.map((c) => {
+                      const k = c.kind === 'empty' ? `${wi}-${c.key}` : `${wi}-${c.ymd}`;
+                      return <Fragment key={k}>{renderBody(c)}</Fragment>;
+                    }),
+                  )}
                 </div>
-              ));
+              );
             })()}
-          </div>
         </section>
       ) : null}
 

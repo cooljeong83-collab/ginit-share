@@ -1010,32 +1010,18 @@ a.gPillBtn.gPillPrimary:visited {
   color: #0f172a;
 }
 
-/* 달력: 주마다 7열 — 요일·날짜를 한 열에 쌓아 같은 주 안에서 높이가 함께 늘어남 */
+/* 달력: 7열 단일 그리드 — 1행 요일, 이후 주별 날짜(열 너비는 후보 유무에 따라 인라인 지정) */
 .gCalendarMatrix {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-.gCalendarWeekRow {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 5px;
+  grid-auto-rows: auto;
   align-items: stretch;
-}
-
-.gCalendarColumnStack {
-  display: flex;
-  flex-direction: column;
   gap: 5px;
+  margin-top: 6px;
   min-width: 0;
-  min-height: 0;
 }
 
 .gCalendarDowCell {
-  flex: 1 1 0;
-  min-height: 24px;
+  min-height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1049,14 +1035,12 @@ a.gPillBtn.gPillPrimary:visited {
 }
 
 /* 후보 있는 날만 최소 높이 — 없는 날·빈 칸은 카드 폭 안에서 덜 차지 */
-.gCalendarColumnStack > .gCalendarCell.gCalendarCellOn {
-  flex: 1 1 0;
+.gCalendarMatrix > .gCalendarCell.gCalendarCellOn {
   min-height: 48px;
 }
 
-.gCalendarColumnStack > button.gCalendarCell.gCalendarCellOff,
-.gCalendarColumnStack > .gCalendarCellEmpty {
-  flex: 1 1 0;
+.gCalendarMatrix > button.gCalendarCell.gCalendarCellOff,
+.gCalendarMatrix > .gCalendarCellEmpty {
   min-height: 0;
 }
 
