@@ -682,6 +682,27 @@ export default function ShareMeetingClient({ token }: { token: string }) {
     return `${base}/meeting/${mid}`;
   }, [meetingId]);
 
+  /**
+   * 앱 모임 상세의「캘린더 저장」과 동일하게 OS 달력으로 넘기기 위한 딥링크.
+   * `NEXT_PUBLIC_GINIT_APP_MEETING_CALENDAR_URL` 에 전체 URL을 두거나 `{meetingId}` 치환.
+   * 미설정 시 `NEXT_PUBLIC_GINIT_APP_OPEN_URL` 베이스에 `/meeting/<id>/calendar` (기본 `ginitapp://meeting/<id>/calendar`).
+   */
+  const openMeetingCalendarAppUrl = useMemo(() => {
+    const midRaw = meetingId.trim();
+    if (!midRaw) return '';
+    const tpl = (process.env.NEXT_PUBLIC_GINIT_APP_MEETING_CALENDAR_URL || '').trim();
+    if (tpl) {
+      return tpl.replace(/\{meetingId\}/gi, midRaw).replace(/\{id\}/gi, midRaw);
+    }
+    const mid = encodeURIComponent(midRaw);
+    const raw = (process.env.NEXT_PUBLIC_GINIT_APP_OPEN_URL || '').trim();
+    const base = raw.replace(/\/+$/, '');
+    if (!base || /^ginitapp:\/\/?$/i.test(base) || base.toLowerCase() === 'ginitapp:') {
+      return `ginitapp://meeting/${mid}/calendar`;
+    }
+    return `${base}/meeting/${mid}/calendar`;
+  }, [meetingId]);
+
   const handleJoinOrRequest = async () => {
     if (!meetingId) return;
     setBusy(true);
@@ -1022,6 +1043,17 @@ export default function ShareMeetingClient({ token }: { token: string }) {
               <div className="gInfoValue">{confirmedDateLabel || [scheduleDate, scheduleTime].filter(Boolean).join(' · ') || '미정'}</div>
             </div>
           </div>
+
+          {joined && treatAsConfirmed && openMeetingCalendarAppUrl ? (
+            <div className="gConfirmBtnRow gConfirmBtnRowSingle" aria-label="일정 캘린더 저장">
+              <a
+                className="gConfirmActionBtn"
+                href={openMeetingCalendarAppUrl}
+                aria-label="지닛 앱에서 일정을 캘린더에 저장">
+                캘린더 저장
+              </a>
+            </div>
+          ) : null}
 
           {confirmedPlace ? (
             <>

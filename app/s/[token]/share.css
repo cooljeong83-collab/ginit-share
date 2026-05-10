@@ -648,6 +648,10 @@ body {
   gap: 10px;
 }
 
+.gConfirmBtnRowSingle {
+  grid-template-columns: 1fr;
+}
+
 .gConfirmActionBtn,
 .gConfirmActionBtnDisabled {
   width: 100%;
