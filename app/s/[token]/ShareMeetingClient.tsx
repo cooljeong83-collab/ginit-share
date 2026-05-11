@@ -70,13 +70,22 @@ function isYmd(s: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(s);
 }
 
+const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const;
+
 function ymdToDate(ymd: string): Date | null {
   if (!isYmd(ymd)) return null;
   const [yy, mm, dd] = ymd.split('-').map((x) => Number(x));
   if (!Number.isFinite(yy) || !Number.isFinite(mm) || !Number.isFinite(dd)) return null;
   const d = new Date(yy, mm - 1, dd);
   if (Number.isNaN(d.getTime())) return null;
+  if (d.getFullYear() !== yy || d.getMonth() !== mm - 1 || d.getDate() !== dd) return null;
   return d;
+}
+
+function formatYmdWithWeekday(ymd: string): string {
+  const d = ymdToDate(ymd);
+  if (!d) return ymd;
+  return `${ymd}(${WEEKDAY_LABELS[d.getDay()]})`;
 }
 
 function ymdMonthKey(ymd: string): string {
@@ -374,7 +383,8 @@ export default function ShareMeetingClient({ token }: { token: string }) {
     return [...dateCandidates]
       .map((d, i) => {
         const id = dateChipId(d, i);
-        const label = `${asStr(d.startDate) || '날짜 미정'} ${asStr(d.startTime) || ''}`.trim() || id;
+        const dateLabel = formatYmdWithWeekday(asStr(d.startDate));
+        const label = `${dateLabel || '날짜 미정'} ${asStr(d.startTime) || ''}`.trim() || id;
         const base = tallyFromBucket(dateTallyBucket, id);
         const tally = base + (!joined && selectedDates.includes(id) ? 1 : 0);
         return { d, i, id, label, tally };
@@ -468,7 +478,8 @@ export default function ShareMeetingClient({ token }: { token: string }) {
     }
     if (dateCandidates.length === 1) {
       const d = dateCandidates[0]!;
-      return `${asStr(d.startDate) || '날짜 미정'} ${asStr(d.startTime) || ''}`.trim() || '확정 일정';
+      const dateLabel = formatYmdWithWeekday(asStr(d.startDate));
+      return `${dateLabel || '날짜 미정'} ${asStr(d.startTime) || ''}`.trim() || '확정 일정';
     }
     return '';
   }, [confirmedDateChipId, sortedDateCandidates, dateCandidates]);
@@ -927,6 +938,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
   const isPublic = typeof meeting.isPublic === 'boolean' ? meeting.isPublic : asStr(meeting.isPublic) === 'true';
   const capacity = Number.isFinite(Number(meeting.capacity)) ? Number(meeting.capacity) : null;
   const scheduleDate = asStr(meeting.scheduleDate);
+  const scheduleDateLabel = formatYmdWithWeekday(scheduleDate);
   const scheduleTime = asStr(meeting.scheduleTime);
   const placeName = asStr(meeting.placeName);
   const address = asStr(meeting.address);
@@ -997,7 +1009,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
           <div>
             <div className="gInfoLabel">일정</div>
             <div className="gInfoValue">
-              {basicInfoDateIsVoting ? '투표중' : [scheduleDate, scheduleTime].filter(Boolean).join(' · ') || '미정'}
+              {basicInfoDateIsVoting ? '투표중' : [scheduleDateLabel, scheduleTime].filter(Boolean).join(' · ') || '미정'}
             </div>
           </div>
           <div>
@@ -1087,7 +1099,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
           <div className="gInfoGrid">
             <div>
               <div className="gInfoLabel">확정 일정</div>
-              <div className="gInfoValue">{confirmedDateLabel || [scheduleDate, scheduleTime].filter(Boolean).join(' · ') || '미정'}</div>
+              <div className="gInfoValue">{confirmedDateLabel || [scheduleDateLabel, scheduleTime].filter(Boolean).join(' · ') || '미정'}</div>
             </div>
           </div>
 
@@ -1644,7 +1656,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
           <button type="button" className="gModalBackdrop" onClick={() => setTimePickYmd(null)} aria-label="닫기" />
           <div className="gModalCard">
             <div className="gModalTitle">시간 선택</div>
-            <div className="gModalSub">{timePickYmd}</div>
+            <div className="gModalSub">{formatYmdWithWeekday(timePickYmd)}</div>
 
             <div className="gTimeList" role="list">
               {(dateByYmd.get(timePickYmd) ?? []).map((o) => {
