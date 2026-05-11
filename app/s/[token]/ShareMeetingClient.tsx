@@ -1159,7 +1159,9 @@ export default function ShareMeetingClient({ token }: { token: string }) {
 
       {!treatAsConfirmed && dateCandidates.length > 0 ? (
         <section className="gCard" ref={(el) => void (dateSectionRef.current = el)}>
-          <h2 className="gSectionTitle">일정 후보</h2>
+          <h2 className="gSectionTitle">
+            일정 후보 {dateCandidates.length > 1 ? <span className="gSectionTitleHint">(다건 선택 가능)</span> : null}
+          </h2>
           {dateCandidates.length === 1 ? (
             <p className="gSectionSub" style={{ marginTop: -6 }}>
               후보가 1개뿐이라 자동으로 선택돼요.
@@ -1272,7 +1274,9 @@ export default function ShareMeetingClient({ token }: { token: string }) {
 
       {!treatAsConfirmed && placeCandidates.length > 0 ? (
         <section className="gCard" ref={(el) => void (placeSectionRef.current = el)}>
-          <h2 className="gSectionTitle">장소 후보</h2>
+          <h2 className="gSectionTitle">
+            장소 후보 {placeCandidates.length > 1 ? <span className="gSectionTitleHint">(다건 선택 가능)</span> : null}
+          </h2>
           {placeCandidates.length === 1 ? (
             <p className="gSectionSub" style={{ marginTop: -6 }}>
               후보가 1개뿐이라 자동으로 선택돼요.
