@@ -128,6 +128,79 @@ function placeChipId(p: LooseDoc, index: number): string {
   return `place-${index}`;
 }
 
+type SharePlaceCandidateView = {
+  p: LooseDoc;
+  name: string;
+};
+
+function ShareConfirmedPlaceCard({
+  place,
+  thumb,
+  mapHref,
+  hasMap,
+  fallbackAddress = '',
+  label = '확정 장소',
+  withDivider = false,
+  showLabel = true,
+}: {
+  place: SharePlaceCandidateView;
+  thumb: string;
+  mapHref: string;
+  hasMap: boolean;
+  fallbackAddress?: string;
+  label?: string;
+  withDivider?: boolean;
+  showLabel?: boolean;
+}) {
+  const { p, name } = place;
+  const category = asStr(p.category);
+  const addr = asStr(p.address) || fallbackAddress;
+  const naverLink = asStr(p.naverPlaceLink);
+
+  return (
+    <>
+      {withDivider ? <div className="gDivider" /> : null}
+      {showLabel ? (
+        <div className="gInfoLabel" style={{ marginBottom: 8 }}>
+          {label}
+        </div>
+      ) : null}
+      <div className="gConfirmPlaceRow">
+        <div className="gConfirmPlaceImg">
+          {thumb ? <img src={thumb} alt="" /> : <div className="gPlaceThumbPh" />}
+        </div>
+        <div className="gConfirmPlaceInfo">
+          <div className="gConfirmPlaceName">{name}</div>
+          {category ? <div className="gConfirmPlaceMeta">{category}</div> : null}
+          {addr ? <div className="gConfirmPlaceMeta">{addr}</div> : null}
+
+          <div className="gConfirmBtnRow" aria-label={`${label} 정보·지도`}>
+            {naverLink ? (
+              <a className="gConfirmActionBtn" href={naverLink} target="_blank" rel="noreferrer">
+                정보
+              </a>
+            ) : (
+              <div className="gConfirmActionBtnDisabled" aria-hidden>
+                정보
+              </div>
+            )}
+
+            {hasMap && mapHref ? (
+              <a className="gConfirmActionBtn" href={mapHref} target="_blank" rel="noreferrer">
+                지도
+              </a>
+            ) : (
+              <div className="gConfirmActionBtnDisabled" aria-hidden>
+                지도
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function movieChipId(m: LooseDoc, index: number): string {
   const mid = asStr(m.id);
   if (mid) return `${mid}#${index}`;
@@ -1104,59 +1177,14 @@ export default function ShareMeetingClient({ token }: { token: string }) {
           </div>
 
           {confirmedPlace ? (
-            <>
-              <div className="gDivider" />
-              <div className="gInfoLabel" style={{ marginBottom: 8 }}>
-                확정 장소
-              </div>
-              <div className="gConfirmPlaceRow">
-                <div className="gConfirmPlaceImg">
-                  {confirmedPlaceThumb ? <img src={confirmedPlaceThumb} alt="" /> : <div className="gPlaceThumbPh" />}
-                </div>
-                <div className="gConfirmPlaceInfo">
-                  <div className="gConfirmPlaceName">{confirmedPlace.name}</div>
-                  {asStr(confirmedPlace.p.category) ? (
-                    <div className="gConfirmPlaceMeta">{asStr(confirmedPlace.p.category)}</div>
-                  ) : null}
-                  {asStr(confirmedPlace.p.address) ? (
-                    <div className="gConfirmPlaceMeta">{asStr(confirmedPlace.p.address)}</div>
-                  ) : address ? (
-                    <div className="gConfirmPlaceMeta">{address}</div>
-                  ) : null}
-
-                  <div className="gConfirmBtnRow" aria-label="확정 장소 정보·지도">
-                    {asStr(confirmedPlace.p.naverPlaceLink) ? (
-                      <a
-                        className="gConfirmActionBtn"
-                        href={asStr(confirmedPlace.p.naverPlaceLink)}
-                        target="_blank"
-                        rel="noreferrer">
-                        정보
-                      </a>
-                    ) : (
-                      <div className="gConfirmActionBtnDisabled" aria-hidden>
-                        정보
-                      </div>
-                    )}
-
-                    {confirmedPlaceLatLng && confirmedPlaceNaverMapHref ? (
-                      <a
-                        className="gConfirmActionBtn"
-                        href={confirmedPlaceNaverMapHref}
-                        target="_blank"
-                        rel="noreferrer">
-                        지도
-                      </a>
-                    ) : (
-                      <div className="gConfirmActionBtnDisabled" aria-hidden>
-                        지도
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-            </>
+            <ShareConfirmedPlaceCard
+              place={confirmedPlace}
+              thumb={confirmedPlaceThumb}
+              mapHref={confirmedPlaceNaverMapHref}
+              hasMap={Boolean(confirmedPlaceLatLng)}
+              fallbackAddress={address}
+              withDivider
+            />
           ) : (
             <div className="gInfoGrid" style={{ marginTop: 12 }}>
               <div>
@@ -1287,52 +1315,24 @@ export default function ShareMeetingClient({ token }: { token: string }) {
       {!treatAsConfirmed && placeCandidates.length > 0 ? (
         <section className="gCard" ref={(el) => void (placeSectionRef.current = el)}>
           <h2 className="gSectionTitle">
-            장소 후보 {placeCandidates.length > 1 ? <span className="gSectionTitleHint">(다건 선택 가능)</span> : null}
+            {placeCandidates.length > 1 ? (
+              <>
+                장소 후보 <span className="gSectionTitleHint">(다건 선택 가능)</span>
+              </>
+            ) : (
+              '장소'
+            )}
           </h2>
-          {placeCandidates.length === 1 ? (
-            <p className="gSectionSub" style={{ marginTop: -6 }}>
-              후보가 1개뿐이라 자동으로 선택돼요.
-            </p>
-          ) : null}
-          {placeCandidates.length === 1 ? (
-            (() => {
-              const one = sortedPlaceCandidates[0];
-              if (!one) return null;
-              const { p, id, name } = one;
-              const addr = asStr(p.address);
-              const category = asStr(p.category);
-              const thumb =
-                (placeThumbById[id] ?? '') ||
-                asStr(p.preferredPhotoMediaUrl) ||
-                asStr(p.photoUrl) ||
-                asStr(p.imageUrl);
-              const link = asStr(p.naverPlaceLink);
-              const singleSelected = selectedPlaces.includes(id);
-              return (
-                <div className={`gSinglePlaceCard${singleSelected ? ' gSinglePlaceCardSelected' : ''}`}>
-                  <div className="gConfirmPlaceRow">
-                    <div className="gConfirmPlaceImg">
-                      {thumb ? <img src={thumb} alt="" /> : <div className="gPlaceThumbPh" />}
-                    </div>
-                    <div className="gConfirmPlaceInfo">
-                      <div className="gConfirmPlaceName">{name}</div>
-                      {category ? <div className="gConfirmPlaceMeta">{category}</div> : null}
-                      {addr ? <div className="gConfirmPlaceMeta">{addr}</div> : null}
-                    </div>
-                  </div>
-                  {link ? (
-                    <a className="gPlaceDetailBtn" href={link} target="_blank" rel="noreferrer">
-                      상세 정보
-                    </a>
-                  ) : (
-                    <div className="gPlaceDetailBtnDisabled" aria-hidden>
-                      상세 정보
-                    </div>
-                  )}
-                </div>
-              );
-            })()
-          ) : (
+          {placeCandidates.length === 1 && confirmedPlace ? (
+            <ShareConfirmedPlaceCard
+              place={confirmedPlace}
+              thumb={confirmedPlaceThumb}
+              mapHref={confirmedPlaceNaverMapHref}
+              hasMap={Boolean(confirmedPlaceLatLng)}
+              fallbackAddress={address}
+              showLabel={false}
+            />
+          ) : placeCandidates.length > 1 ? (
             <div className="gHScroll" role="list">
               {sortedPlaceCandidates.map(({ p, i, id, name, tally }) => {
                 const on = selectedPlaces.includes(id);
@@ -1386,7 +1386,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
                 );
               })}
             </div>
-          )}
+          ) : null}
         </section>
       ) : null}
 
