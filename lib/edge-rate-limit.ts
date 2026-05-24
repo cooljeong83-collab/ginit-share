@@ -20,19 +20,19 @@ const WINDOW_MS = 60_000;
 type MemBucket = { count: number; resetAt: number };
 const memBuckets = new Map<string, MemBucket>();
 
-let upstashByPath: Partial<Record<ApiRateLimitPath, Ratelimit>> | null = null;
+/** env 없을 때 `{}` 를 영구 캐시하지 않음 (env 추가 후 재배포 전 인스턴스 대비) */
+let upstashByPath: Partial<Record<ApiRateLimitPath, Ratelimit>> | undefined;
 
 function isApiRateLimitPath(pathname: string): pathname is ApiRateLimitPath {
   return pathname === '/api/place-thumbnail' || pathname === '/api/naver-static-map';
 }
 
 function getUpstashLimiters(): Partial<Record<ApiRateLimitPath, Ratelimit>> {
-  if (upstashByPath !== null) return upstashByPath;
+  if (upstashByPath) return upstashByPath;
   const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
   const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
   if (!url || !token) {
-    upstashByPath = {};
-    return upstashByPath;
+    return {};
   }
   const redis = new Redis({ url, token });
   upstashByPath = {

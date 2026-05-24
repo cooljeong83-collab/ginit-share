@@ -1,6 +1,9 @@
 # 웹 공유 QA 체크리스트
 
-환경: Supabase `0077` + `0273` + `0274` + `0275` 적용, 앱·웹 동일 Supabase URL·Anon 키, ginit-share 최신 배포.
+환경: Supabase `0273`–`0279` 적용, ginit-share 최신 배포.
+
+**필수 Vercel env:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, **`SUPABASE_SERVICE_ROLE_KEY`** (서버 전용).  
+guest RPC는 브라우저가 `/api/share/*`만 호출 — anon 키로 `meeting_share_guest_*` 직접 RPC 불가(`0279`).
 
 ## OPEN 모임
 
@@ -34,6 +37,7 @@
 3. **썸네일**: 장소 카드 이미지 로드, 요청에 `X-Ginit-Share-Token` 또는 `shareToken`.
 4. **guest_get**: 응답에 `leaveSecretHash`·`joinRequests[].message` 없음.
 5. (선택) 레거시 참여자(해시 없음) 나가기 → `leave_secret_required` 안내.
+6. **URL**: `placeCandidates[].naverPlaceLink`가 `https://evil.example`이면 guest_get·웹 UI에서 링크 없음(0276).
 
 ## 앱 UI
 

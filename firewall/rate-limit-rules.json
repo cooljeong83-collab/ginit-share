@@ -1,9 +1,10 @@
 {
   "$schema": "./rate-limit-rules.schema.json",
   "description": "Vercel Firewall path 규칙 — 엣지에서 IP당 제한(인스턴스 분산 보완). vercel firewall publish 전 apply 스크립트 참고.",
+  "hobbyRuleName": "ginit-share-rl-api-fallback",
   "rules": [
     {
-      "name": "ginit-share RL place-thumbnail",
+      "name": "ginit-share-rl-place-thumbnail",
       "path": "/api/place-thumbnail",
       "pathOp": "eq",
       "windowSec": 60,
@@ -13,7 +14,7 @@
       "exceedAction": "rate_limit"
     },
     {
-      "name": "ginit-share RL naver-static-map",
+      "name": "ginit-share-rl-naver-static-map",
       "path": "/api/naver-static-map",
       "pathOp": "eq",
       "windowSec": 60,
@@ -23,7 +24,7 @@
       "exceedAction": "rate_limit"
     },
     {
-      "name": "ginit-share RL api fallback",
+      "name": "ginit-share-rl-api-fallback",
       "path": "/api",
       "pathOp": "pre",
       "windowSec": 60,

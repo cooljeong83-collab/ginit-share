@@ -1,6 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-
 import { sanitizeHttpsImageUrl } from '@/lib/safe-external-url';
+import { rpcMeetingShareGuestGet } from '@/lib/share-rpc-server';
 
 type LooseMeeting = Record<string, unknown>;
 
@@ -36,7 +35,6 @@ function pickFirstHttpsFromPlace(p: unknown): string | null {
   return null;
 }
 
-/** 모임 대표 이미지 없을 때 장소 후보 썸네일로 OG 이미지 보강 */
 function pickOgImageUrl(meeting: LooseMeeting): string | null {
   const direct = sanitizeHttpsImageUrl(meeting.imageUrl);
   if (direct) return direct;
@@ -58,27 +56,27 @@ export type ShareMeetingOgPayload = {
   imageUrl: string | null;
 };
 
-/** 링크 프리뷰용: anon RPC로 모임 메타만 조회 (실패 시 null) */
+/** 링크 프리뷰용: service role RPC로 모임 메타만 조회 (실패 시 null) */
 export async function fetchShareMeetingOgMeta(token: string): Promise<ShareMeetingOgPayload | null> {
   const raw = token.trim();
   if (!raw) return null;
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
-  if (!url || !key) return null;
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || !process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) {
+    return null;
+  }
 
-  const supabase = createClient(url, key);
-  const { data, error } = await supabase.rpc('meeting_share_guest_get', { p_token: raw });
-  if (error || data == null) return null;
+  try {
+    const row = await rpcMeetingShareGuestGet(raw);
+    const meeting = row.meeting;
+    if (!meeting || typeof meeting !== 'object' || Array.isArray(meeting)) return null;
 
-  const row = data as { meeting?: LooseMeeting };
-  const meeting = row.meeting;
-  if (!meeting || typeof meeting !== 'object' || Array.isArray(meeting)) return null;
+    const title = asStr(meeting.title) || '모임';
+    const pageTitle = `${title} · 지닛 모임 공유`;
+    const description = buildShareDescription(meeting, title);
+    const imageUrl = pickOgImageUrl(meeting);
 
-  const title = asStr(meeting.title) || '모임';
-  const pageTitle = `${title} · 지닛 모임 공유`;
-  const description = buildShareDescription(meeting, title);
-  const imageUrl = pickOgImageUrl(meeting);
-
-  return { title, pageTitle, description, imageUrl };
+    return { title, pageTitle, description, imageUrl };
+  } catch {
+    return null;
+  }
 }

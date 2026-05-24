@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { rpcMeetingShareAssertValidToken } from '@/lib/share-rpc-server';
 
 const SHARE_TOKEN_RE = /^[0-9a-f]{64}$/i;
 
@@ -8,28 +8,20 @@ export function normalizeShareToken(raw: unknown): string | null {
   return t;
 }
 
-function getSupabaseServer() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
-  if (!url || !key) {
-    throw new Error('supabase_not_configured');
-  }
-  return createClient(url, key);
-}
-
-/** 유효한(미만료·미폐기) 공유 토큰인지 확인 (가벼운 RPC) */
+/** 유효한(미만료·미폐기) 공유 토큰인지 확인 (가벼운 RPC, service role) */
 export async function assertValidShareToken(token: string): Promise<void> {
-  const supabase = getSupabaseServer();
-  const { error } = await supabase.rpc('meeting_share_assert_valid_share_token', { p_token: token });
-  if (error) {
-    const msg = error.message.toLowerCase();
+  try {
+    await rpcMeetingShareAssertValidToken(token);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    const lower = msg.toLowerCase();
     if (
-      msg.includes('meeting_share_invalid_or_expired_token') ||
-      msg.includes('invalid_share_token')
+      lower.includes('meeting_share_invalid_or_expired_token') ||
+      lower.includes('invalid_share_token')
     ) {
       throw new Error('invalid_share_token');
     }
-    if (msg.includes('meeting_share_rate_limited') || msg.includes('rate_limited')) {
+    if (lower.includes('meeting_share_rate_limited') || lower.includes('rate_limited')) {
       throw new Error('rate_limited');
     }
     throw new Error('share_token_check_failed');

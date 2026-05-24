@@ -7,8 +7,10 @@
     "build": "next build",
     "start": "next start -p 3456",
     "lint": "eslint .",
-    "firewall:apply": "node scripts/apply-vercel-firewall-rate-limits.mjs",
-    "firewall:apply:dry-run": "node scripts/apply-vercel-firewall-rate-limits.mjs --dry-run"
+    "firewall:apply": "node scripts/apply-vercel-firewall-rate-limits.mjs --hobby",
+    "firewall:apply:dry-run": "node scripts/apply-vercel-firewall-rate-limits.mjs --hobby --dry-run",
+    "firewall:apply:pro": "node scripts/apply-vercel-firewall-rate-limits.mjs --pro",
+    "firewall:apply:pro:dry-run": "node scripts/apply-vercel-firewall-rate-limits.mjs --pro --dry-run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
