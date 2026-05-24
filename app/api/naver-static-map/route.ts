@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/api-rate-limit';
 import { assertValidShareToken, normalizeShareToken } from '@/lib/share-token-server';
 
 function asNum(v: string | null): number | null {
@@ -11,10 +10,6 @@ function asNum(v: string | null): number | null {
 
 export async function GET(req: Request) {
   try {
-    const ip = getClientIp(req);
-    const limited = checkRateLimit(`naver-static-map:${ip}`, 60);
-    if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
-
     const url = new URL(req.url);
     const shareToken = normalizeShareToken(
       url.searchParams.get('shareToken') ?? url.searchParams.get('token') ?? req.headers.get('x-ginit-share-token'),

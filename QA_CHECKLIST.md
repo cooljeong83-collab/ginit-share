@@ -22,6 +22,11 @@
 1. 잘못된·만료·폐기 토큰 → 안내 문구.
 2. 로그아웃 상태 앱에서 공유 링크 생성 → 실패 (`meeting_share_auth_required`).
 
+## Rate limit (Vercel WAF / Upstash)
+
+1. `docs/VERCEL_FIREWALL.md` 따라 WAF path 규칙 Publish 또는 Upstash env 설정.
+2. 동일 IP에서 `/api/place-thumbnail` 1분 40회 초과 → 429.
+
 ## 보안 (회귀)
 
 1. **타인 퇴장**: 다른 브라우저에서 남의 `ginitweb_*` + 빈 secret으로 `meeting_share_guest_leave` → 실패.

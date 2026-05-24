@@ -6,10 +6,15 @@
     "dev": "next dev --turbopack -p 3456",
     "build": "next build",
     "start": "next start -p 3456",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "firewall:apply": "node scripts/apply-vercel-firewall-rate-limits.mjs",
+    "firewall:apply:dry-run": "node scripts/apply-vercel-firewall-rate-limits.mjs --dry-run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.0",
+    "@vercel/firewall": "^1.2.1",
     "next": "^15.3.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

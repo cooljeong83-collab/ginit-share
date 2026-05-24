@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/api-rate-limit';
 import { isAllowedNaverMediaUrl, isAllowedNaverPlaceUrl } from '@/lib/safe-external-url';
 import { assertValidShareToken, normalizeShareToken, readShareTokenFromJsonBody } from '@/lib/share-token-server';
 
@@ -98,10 +97,6 @@ const thumbCache = new Map<string, string | null>();
 
 export async function POST(req: Request) {
   try {
-    const ip = getClientIp(req);
-    const limited = checkRateLimit(`place-thumbnail:${ip}`, 40);
-    if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
-
     const shareToken =
       normalizeShareToken(req.headers.get('x-ginit-share-token')) ?? (await readShareTokenFromJsonBody(req));
     if (!shareToken) {

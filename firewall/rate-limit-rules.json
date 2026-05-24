@@ -1,0 +1,49 @@
+{
+  "$schema": "./rate-limit-rules.schema.json",
+  "description": "Vercel Firewall path 규칙 — 엣지에서 IP당 제한(인스턴스 분산 보완). vercel firewall publish 전 apply 스크립트 참고.",
+  "rules": [
+    {
+      "name": "ginit-share RL place-thumbnail",
+      "path": "/api/place-thumbnail",
+      "pathOp": "eq",
+      "windowSec": 60,
+      "maxRequests": 40,
+      "keys": ["ip"],
+      "algo": "fixed_window",
+      "exceedAction": "rate_limit"
+    },
+    {
+      "name": "ginit-share RL naver-static-map",
+      "path": "/api/naver-static-map",
+      "pathOp": "eq",
+      "windowSec": 60,
+      "maxRequests": 60,
+      "keys": ["ip"],
+      "algo": "fixed_window",
+      "exceedAction": "rate_limit"
+    },
+    {
+      "name": "ginit-share RL api fallback",
+      "path": "/api",
+      "pathOp": "pre",
+      "windowSec": 60,
+      "maxRequests": 120,
+      "keys": ["ip"],
+      "algo": "fixed_window",
+      "exceedAction": "rate_limit"
+    }
+  ],
+  "sdkRules": [
+    {
+      "comment": "대시보드에서 @vercel/firewall 조건 + 동일 Rate limit ID 로 추가 (middleware @vercel/firewall SDK)",
+      "rateLimitId": "ginit-share-place-thumbnail",
+      "windowSec": 60,
+      "maxRequests": 40
+    },
+    {
+      "rateLimitId": "ginit-share-naver-static-map",
+      "windowSec": 60,
+      "maxRequests": 60
+    }
+  ]
+}
