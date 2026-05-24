@@ -324,6 +324,9 @@ function formatMeetingShareRpcError(raw: string): string {
   if (m.includes('meeting_share_guest_leave_forbidden')) {
     return '모임 나가기를 할 수 없어요. 참여했던 브라우저에서 다시 시도하거나, 호스트에게 문의해 주세요.';
   }
+  if (m.includes('meeting_share_guest_leave_secret_required')) {
+    return '모임 나가기 인증 정보가 없어요. 참여했던 브라우저에서 다시 시도하거나, 호스트에게 나가기를 요청해 주세요.';
+  }
   if (m.includes('rate_limited') || m.includes('meeting_share_rate_limited')) {
     return '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.';
   }

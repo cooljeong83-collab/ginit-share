@@ -161,6 +161,9 @@ export async function POST(req: Request) {
     if (msg === 'invalid_share_token' || msg === 'share_token_required') {
       return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     }
+    if (msg === 'rate_limited') {
+      return NextResponse.json({ error: 'rate_limited' }, { status: 429, headers: { 'Retry-After': '60' } });
+    }
     if (msg === 'naver_search_not_configured') {
       return NextResponse.json({ error: 'service_unavailable' }, { status: 503 });
     }

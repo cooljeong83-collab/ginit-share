@@ -82,6 +82,9 @@ export async function GET(req: Request) {
     if (msg === 'invalid_share_token' || msg === 'share_token_required') {
       return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     }
+    if (msg === 'rate_limited') {
+      return NextResponse.json({ error: 'rate_limited' }, { status: 429, headers: { 'Retry-After': '60' } });
+    }
     return NextResponse.json({ error: 'request_failed' }, { status: 500 });
   }
 }
