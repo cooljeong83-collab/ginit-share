@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
+import { sanitizeHttpsImageUrl } from '@/lib/safe-external-url';
+
 type LooseMeeting = Record<string, unknown>;
 
 function asStr(v: unknown): string {
@@ -28,16 +30,16 @@ function pickFirstHttpsFromPlace(p: unknown): string | null {
   if (!p || typeof p !== 'object' || Array.isArray(p)) return null;
   const o = p as Record<string, unknown>;
   for (const k of ['preferredPhotoMediaUrl', 'photoUrl', 'imageUrl']) {
-    const u = asStr(o[k]);
-    if (u.startsWith('https://') || u.startsWith('http://')) return u;
+    const u = sanitizeHttpsImageUrl(o[k]);
+    if (u) return u;
   }
   return null;
 }
 
 /** 모임 대표 이미지 없을 때 장소 후보 썸네일로 OG 이미지 보강 */
 function pickOgImageUrl(meeting: LooseMeeting): string | null {
-  const direct = asStr(meeting.imageUrl);
-  if (direct.startsWith('https://') || direct.startsWith('http://')) return direct;
+  const direct = sanitizeHttpsImageUrl(meeting.imageUrl);
+  if (direct) return direct;
 
   const raw = meeting.placeCandidates;
   if (Array.isArray(raw)) {

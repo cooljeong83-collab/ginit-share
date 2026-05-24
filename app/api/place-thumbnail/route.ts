@@ -1,19 +1,18 @@
 import { NextResponse } from 'next/server';
 
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/api-rate-limit';
+import { isAllowedNaverMediaUrl, isAllowedNaverPlaceUrl } from '@/lib/safe-external-url';
+import { assertValidShareToken, normalizeShareToken, readShareTokenFromJsonBody } from '@/lib/share-token-server';
+
 type PlaceThumbnailRequest = {
+  shareToken?: string;
+  token?: string;
   title?: string;
   addressLine?: string;
   category?: string;
   preferredPhotoMediaUrl?: string;
   naverPlaceLink?: string;
 };
-
-function normalizeHttpsUrl(v: unknown): string | null {
-  const s = typeof v === 'string' ? v.trim() : '';
-  if (!s) return null;
-  if (!s.startsWith('https://')) return null;
-  return s;
-}
 
 function stripHtmlTags(s: string): string {
   return s.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
@@ -55,14 +54,14 @@ function scoreImageTitleAgainstPlace(imageTitleRaw: string, placeTitle: string, 
 
 async function fetchOgImage(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url, { redirect: 'follow' });
+    const res = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(12_000) });
     if (!res.ok) return null;
     const html = await res.text();
     const m =
       html.match(/property=["']og:image["']\s+content=["']([^"']+)["']/i) ||
       html.match(/content=["']([^"']+)["']\s+property=["']og:image["']/i);
     const u = m?.[1] ? m[1].trim() : '';
-    return normalizeHttpsUrl(u);
+    return isAllowedNaverMediaUrl(u) ? u : null;
   } catch {
     return null;
   }
@@ -76,7 +75,7 @@ async function fetchNaverOpenApiImageSearch(query: string, display: number): Pro
   const id = process.env.NAVER_SEARCH_CLIENT_ID?.trim() || '';
   const secret = process.env.NAVER_SEARCH_CLIENT_SECRET?.trim() || '';
   if (!id || !secret) {
-    throw new Error('NAVER_SEARCH_CLIENT_ID / NAVER_SEARCH_CLIENT_SECRET 가 필요합니다.');
+    throw new Error('naver_search_not_configured');
   }
 
   const q = query.trim();
@@ -87,10 +86,10 @@ async function fetchNaverOpenApiImageSearch(query: string, display: number): Pro
       'X-Naver-Client-Secret': secret,
       Accept: 'application/json',
     },
+    signal: AbortSignal.timeout(12_000),
   });
   if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`이미지 검색 API 오류 (${res.status}): ${t.slice(0, 200)}`);
+    throw new Error('naver_image_search_failed');
   }
   return (await res.json()) as NaverOpenApiImageJson;
 }
@@ -99,10 +98,24 @@ const thumbCache = new Map<string, string | null>();
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const limited = checkRateLimit(`place-thumbnail:${ip}`, 40);
+    if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
+
+    const shareToken =
+      normalizeShareToken(req.headers.get('x-ginit-share-token')) ?? (await readShareTokenFromJsonBody(req));
+    if (!shareToken) {
+      return NextResponse.json({ error: 'share_token_required' }, { status: 401 });
+    }
+    await assertValidShareToken(shareToken);
+
     const body = (await req.json()) as PlaceThumbnailRequest;
-    const pref = normalizeHttpsUrl(body.preferredPhotoMediaUrl);
-    if (pref) {
-      return NextResponse.json({ thumbnailUrl: pref });
+    const prefRaw = typeof body.preferredPhotoMediaUrl === 'string' ? body.preferredPhotoMediaUrl.trim() : '';
+    if (prefRaw) {
+      const pref = isAllowedNaverMediaUrl(prefRaw) ? prefRaw : null;
+      if (pref) {
+        return NextResponse.json({ thumbnailUrl: pref });
+      }
     }
 
     const title = typeof body.title === 'string' ? body.title.trim() : '';
@@ -113,9 +126,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ thumbnailUrl: thumbCache.get(cacheKey) });
     }
 
-    const placeUrl = normalizeHttpsUrl(body.naverPlaceLink);
-    if (placeUrl) {
-      const og = await fetchOgImage(placeUrl);
+    const placeUrlRaw = typeof body.naverPlaceLink === 'string' ? body.naverPlaceLink.trim() : '';
+    if (placeUrlRaw && isAllowedNaverPlaceUrl(placeUrlRaw)) {
+      const og = await fetchOgImage(placeUrlRaw);
       if (og) {
         thumbCache.set(cacheKey, og);
         return NextResponse.json({ thumbnailUrl: og });
@@ -131,7 +144,11 @@ export async function POST(req: Request) {
     const items = Array.isArray(json.items) ? json.items : [];
     let best: { url: string; score: number } | null = null;
     for (const it of items) {
-      const url = normalizeHttpsUrl(it.thumbnail) ?? normalizeHttpsUrl(it.link);
+      const thumb = typeof it.thumbnail === 'string' ? it.thumbnail.trim() : '';
+      const link = typeof it.link === 'string' ? it.link.trim() : '';
+      const url =
+        (thumb && isAllowedNaverMediaUrl(thumb) ? thumb : null) ??
+        (link && isAllowedNaverMediaUrl(link) ? link : null);
       if (!url) continue;
       const score = scoreImageTitleAgainstPlace(String(it.title ?? ''), title, addressLine);
       if (!best || score > best.score) best = { url, score };
@@ -141,7 +158,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ thumbnailUrl: out });
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'unknown_error';
-    return NextResponse.json({ error: msg }, { status: 400 });
+    if (msg === 'invalid_share_token' || msg === 'share_token_required') {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    }
+    if (msg === 'naver_search_not_configured') {
+      return NextResponse.json({ error: 'service_unavailable' }, { status: 503 });
+    }
+    return NextResponse.json({ error: 'request_failed' }, { status: 400 });
   }
 }
-
