@@ -224,8 +224,50 @@ function resolveNaverMovieSearchWebUrl(movieTitle: string): string {
   return `https://m.search.naver.com/search.naver?where=m&sm=mtp_hty.top&query=${encodeURIComponent(q)}`;
 }
 
+type GuestSession = {
+  userId: string;
+  leaveSecret?: string;
+};
+
 function guestStorageKey(meetingId: string): string {
   return `ginit_share_guest:${meetingId}`;
+}
+
+function readGuestSession(meetingId: string): GuestSession | null {
+  if (typeof window === 'undefined' || !meetingId.trim()) return null;
+  try {
+    const raw = window.localStorage.getItem(guestStorageKey(meetingId));
+    if (!raw?.trim()) return null;
+    const t = raw.trim();
+    if (t.startsWith('{')) {
+      const o = JSON.parse(t) as { userId?: unknown; leaveSecret?: unknown };
+      const userId = typeof o.userId === 'string' ? o.userId.trim() : '';
+      if (!userId) return null;
+      const leaveSecret = typeof o.leaveSecret === 'string' ? o.leaveSecret.trim() : '';
+      return leaveSecret ? { userId, leaveSecret } : { userId };
+    }
+    return { userId: t };
+  } catch {
+    return null;
+  }
+}
+
+function writeGuestSession(meetingId: string, session: GuestSession): void {
+  if (typeof window === 'undefined' || !meetingId.trim()) return;
+  const userId = session.userId.trim();
+  if (!userId) return;
+  const leaveSecret = session.leaveSecret?.trim() ?? '';
+  const payload: GuestSession = leaveSecret ? { userId, leaveSecret } : { userId };
+  window.localStorage.setItem(guestStorageKey(meetingId), JSON.stringify(payload));
+}
+
+function clearGuestSession(meetingId: string): void {
+  if (typeof window === 'undefined' || !meetingId.trim()) return;
+  try {
+    window.localStorage.removeItem(guestStorageKey(meetingId));
+  } catch {
+    /* ignore */
+  }
 }
 
 /** participantVoteLog / joinRequests 행의 dateChipIds 등 JSON 배열 → 문자열 id 목록 */
@@ -271,6 +313,9 @@ function formatMeetingShareRpcError(raw: string): string {
   }
   if (m.includes('meeting_share_invalid_guest') || m.includes('meeting_share_invalid_guest_id')) {
     return '참여 정보를 확인할 수 없어요. 페이지를 새로고침한 뒤 다시 시도해 주세요.';
+  }
+  if (m.includes('meeting_share_guest_leave_forbidden')) {
+    return '모임 나가기를 할 수 없어요. 참여했던 브라우저에서 다시 시도하거나, 호스트에게 문의해 주세요.';
   }
   if (m.includes('cannot extract elements from a scalar')) {
     return '모임 저장 데이터 형식 문제로 나가기를 처리하지 못했어요. 서버를 최신으로 올린 뒤 다시 시도해 주세요.';
@@ -343,6 +388,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
   const [displayName, setDisplayName] = useState('');
   const [requestMessage, setRequestMessage] = useState('');
   const [guestUserId, setGuestUserId] = useState<string | null>(null);
+  const [guestLeaveSecret, setGuestLeaveSecret] = useState<string | null>(null);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [selectedPlaces, setSelectedPlaces] = useState<string[]>([]);
   const [selectedMovies, setSelectedMovies] = useState<string[]>([]);
@@ -638,14 +684,18 @@ export default function ShareMeetingClient({ token }: { token: string }) {
       setMeeting(m);
       setRequiresHostApproval(Boolean(row?.requiresHostApproval));
       const mid = asStr(m.id);
-      const stored = mid && typeof window !== 'undefined' ? window.localStorage.getItem(guestStorageKey(mid)) : null;
-      setGuestUserId(stored?.trim() ? stored.trim() : null);
+      const session = mid ? readGuestSession(mid) : null;
+      const storedId = session?.userId?.trim() ?? '';
+      setGuestUserId(storedId || null);
+      setGuestLeaveSecret(session?.leaveSecret?.trim() ? session.leaveSecret.trim() : null);
       const parts = Array.isArray(m.participantIds)
         ? (m.participantIds as unknown[]).filter((x): x is string => typeof x === 'string')
         : [];
-      const inParticipants = stored?.trim() && parts.includes(stored.trim());
+      const inParticipants = storedId !== '' && parts.includes(storedId);
       const jrs = Array.isArray(m.joinRequests) ? m.joinRequests : [];
-      const inJr = stored?.trim() && jrs.some((jr) => typeof jr === 'object' && jr && asStr((jr as LooseDoc).userId) === stored.trim());
+      const inJr =
+        storedId !== '' &&
+        jrs.some((jr) => typeof jr === 'object' && jr && asStr((jr as LooseDoc).userId) === storedId);
       setJoined(Boolean(inParticipants || inJr));
       setPhase('ready');
     } catch (e) {
@@ -853,8 +903,10 @@ export default function ShareMeetingClient({ token }: { token: string }) {
         if (error) throw new Error(error.message);
         const gid = asStr((data as { guestUserId?: string })?.guestUserId);
         if (!gid) throw new Error('참가 신청에 실패했어요.');
-        window.localStorage.setItem(guestStorageKey(meetingId), gid);
+        const leaveSecret = asStr((data as { guestLeaveSecret?: string })?.guestLeaveSecret);
+        writeGuestSession(meetingId, leaveSecret ? { userId: gid, leaveSecret } : { userId: gid });
         setGuestUserId(gid);
+        setGuestLeaveSecret(leaveSecret || null);
         setJoined(true);
       } else {
         const { data, error } = await sb.rpc('meeting_share_guest_join', {
@@ -867,7 +919,13 @@ export default function ShareMeetingClient({ token }: { token: string }) {
         const gid = asStr((data as { guestUserId?: string })?.guestUserId);
         if (!gid) throw new Error('참여에 실패했어요.');
         openJoinWasAlreadyParticipant = Boolean((data as { alreadyJoined?: boolean })?.alreadyJoined);
-        window.localStorage.setItem(guestStorageKey(meetingId), gid);
+        const leaveSecret = asStr((data as { guestLeaveSecret?: string })?.guestLeaveSecret);
+        if (leaveSecret) {
+          writeGuestSession(meetingId, { userId: gid, leaveSecret });
+          setGuestLeaveSecret(leaveSecret);
+        } else {
+          writeGuestSession(meetingId, { userId: gid, leaveSecret: guestLeaveSecret ?? undefined });
+        }
         setGuestUserId(gid);
         setJoined(true);
       }
@@ -903,15 +961,13 @@ export default function ShareMeetingClient({ token }: { token: string }) {
         const { error } = await sb.rpc('meeting_share_guest_leave', {
           p_token: token,
           p_guest_user_id: gid,
+          p_guest_leave_secret: guestLeaveSecret?.trim() ?? '',
         });
         if (error) throw new Error(error.message);
       }
-      try {
-        window.localStorage.removeItem(guestStorageKey(meetingId));
-      } catch {
-        /* ignore */
-      }
+      clearGuestSession(meetingId);
       setGuestUserId(null);
+      setGuestLeaveSecret(null);
       setJoined(false);
       setGuestJoinConfirmOpen(false);
       setDisplayName('');
