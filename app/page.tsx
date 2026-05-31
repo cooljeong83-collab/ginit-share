@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 
+import GinitAppOpenLink from '@/app/GinitAppOpenLink';
 import { toAbsoluteSiteUrl } from '@/lib/site-origin';
 
 import styles from './page.module.css';
@@ -25,15 +26,7 @@ export const metadata: Metadata = {
   },
 };
 
-function resolveAppOpenHref(): string {
-  const raw = (process.env.NEXT_PUBLIC_GINIT_APP_OPEN_URL || '').trim();
-  if (raw) return raw.replace(/\/+$/, '');
-  return 'ginitapp://';
-}
-
 export default function HomePage() {
-  const appHref = resolveAppOpenHref();
-
   return (
     <main className={styles.home}>
       <div className={styles.card}>
@@ -66,10 +59,7 @@ export default function HomePage() {
         </p>
 
         <div className={styles.actions}>
-          <a href={appHref} className={styles.cta}>
-            지닛 앱 열기
-          </a>
-          <p className={styles.secondaryMuted}>앱스토어 링크는 준비 중이에요</p>
+          <GinitAppOpenLink className={styles.cta}>지닛 앱 열기</GinitAppOpenLink>
         </div>
 
         <p className={styles.footer}>

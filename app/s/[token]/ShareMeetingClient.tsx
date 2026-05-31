@@ -1,5 +1,6 @@
 'use client';
 
+import GinitAppOpenLink from '@/app/GinitAppOpenLink';
 import { buildGinitMeetingIcs, resolveShareMeetingEventYmdHm } from '@/lib/meeting-device-calendar';
 import {
   apiShareGuestGet,
@@ -788,21 +789,6 @@ export default function ShareMeetingClient({ token }: { token: string }) {
     [selectedDates, selectedPlaces, selectedMovies],
   );
 
-  /** 앱 모임 상세: `ginit-app` 푸시·알람과 동일하게 `ginitapp://meeting/<id>` (ex. meeting-host-push-notify.ts) */
-  const openInAppUrl = useMemo(() => {
-    const mid = meetingId ? encodeURIComponent(meetingId) : '';
-    const raw = (process.env.NEXT_PUBLIC_GINIT_APP_OPEN_URL || '').trim();
-    if (!mid) {
-      const fallback = raw.replace(/\/+$/, '') || 'ginitapp://';
-      return fallback;
-    }
-    const base = raw.replace(/\/+$/, '');
-    if (!base || /^ginitapp:\/\/?$/i.test(base) || base.toLowerCase() === 'ginitapp:') {
-      return `ginitapp://meeting/${mid}`;
-    }
-    return `${base}/meeting/${mid}`;
-  }, [meetingId]);
-
   const canSaveDeviceCalendar = useMemo(() => {
     if (!meeting || !meetingId.trim() || !joined || !scheduleConfirmed) return false;
     return resolveShareMeetingEventYmdHm(meeting, confirmedDateChipId, sortedDateCandidates, dateCandidates) != null;
@@ -1562,10 +1548,10 @@ export default function ShareMeetingClient({ token }: { token: string }) {
               {m.saveCalendar}
             </button>
           ) : null}
-          <a href={openInAppUrl} className="gPillBtn gPillPrimary">
+          <GinitAppOpenLink meetingId={meetingId} className="gPillBtn gPillPrimary">
             <img src="/ginit-logo.png" alt="" className="gPillBtnLogo" width={22} height={22} />
             {m.openInApp}
-          </a>
+          </GinitAppOpenLink>
         </div>
       </div>
 
