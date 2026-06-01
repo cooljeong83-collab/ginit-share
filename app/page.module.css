@@ -1,149 +1,321 @@
 .home {
+  position: relative;
   min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 18px 32px;
-  background: linear-gradient(165deg, #f1f5f9 0%, #e2e8f0 45%, #f8fafc 100%);
+  padding: 28px 16px 40px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(109, 40, 217, 0.35), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 50%, rgba(56, 189, 248, 0.12), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 0% 80%, rgba(167, 139, 250, 0.18), transparent 45%),
+    linear-gradient(168deg, #0f172a 0%, #1e1b4b 38%, #0f172a 100%);
 }
 
-.card {
+.glow {
+  position: absolute;
+  inset: auto 50% 72% auto;
+  width: 320px;
+  height: 320px;
+  transform: translate(50%, 50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.45) 0%, transparent 68%);
+  filter: blur(48px);
+  pointer-events: none;
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 420px;
-  padding: 32px 28px 36px;
-  border-radius: 22px;
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.1);
+  max-width: 520px;
+  padding: 28px 22px 32px;
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 250, 252, 0.94) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.06),
+    0 24px 64px rgba(15, 23, 42, 0.28),
+    0 8px 24px rgba(76, 29, 149, 0.12);
+  backdrop-filter: blur(12px);
+}
+
+.hero {
   text-align: center;
+  margin-bottom: 24px;
+}
+
+.logoWrap {
+  display: inline-flex;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(76, 29, 149, 0.08), rgba(109, 40, 217, 0.14));
+  box-shadow: 0 8px 24px rgba(76, 29, 149, 0.15);
 }
 
 .logo {
-  width: 108px;
-  height: 108px;
+  width: 88px;
+  height: 88px;
   object-fit: contain;
   display: block;
-  margin: 0 auto 12px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7c3aed;
 }
 
 .title {
-  margin: 0 0 6px;
-  font-size: 28px;
+  margin: 0 0 10px;
+  font-size: 36px;
   font-weight: 950;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
   color: #0f172a;
+  background: linear-gradient(120deg, #312e81 0%, #6d28d9 55%, #4c1d95 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .tagline {
-  margin: 0 0 22px;
+  margin: 0;
   font-size: 15px;
   font-weight: 700;
-  color: #4c1d95;
-  line-height: 1.45;
-}
-
-.lead {
-  margin: 0 0 18px;
-  font-size: 14px;
-  font-weight: 650;
-  color: #334155;
-  line-height: 1.65;
-  text-align: left;
-}
-
-.list {
-  margin: 0 0 22px;
-  padding: 0 0 0 18px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #475569;
-  line-height: 1.7;
-  text-align: left;
-}
-
-.list li {
-  margin-bottom: 6px;
-}
-
-.note {
-  margin: 0 0 22px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(76, 29, 149, 0.06);
-  border: 1px solid rgba(76, 29, 149, 0.12);
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #334155;
   line-height: 1.55;
-  text-align: left;
+  color: #475569;
+}
+
+.videoSection {
+  margin-bottom: 22px;
+}
+
+.videoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.videoTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #1e293b;
+}
+
+.videoBadge {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.videoFrame {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #0f172a;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.12),
+    0 16px 40px rgba(15, 23, 42, 0.22);
+}
+
+.videoFrame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  vertical-align: middle;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0 0 22px;
+  padding: 0;
+  list-style: none;
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  text-align: center;
+}
+
+.featureIcon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.featureText {
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #334155;
 }
 
 .actions {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  margin-bottom: 18px;
 }
 
-.cta {
-  display: inline-flex;
+.playStoreBtn {
+  display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 14px;
   width: 100%;
   padding: 14px 18px;
-  border-radius: 999px;
-  font-size: 15px;
-  font-weight: 900;
+  border-radius: 16px;
   text-decoration: none;
   color: #fff;
-  background: linear-gradient(135deg, #4c1d95, #6d28d9);
-  border: 1px solid rgba(76, 29, 149, 0.35);
-  box-shadow: 0 8px 22px rgba(76, 29, 149, 0.25);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 48%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 10px 28px rgba(15, 23, 42, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.cta:hover {
-  filter: brightness(1.05);
+.playStoreBtn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 14px 32px rgba(15, 23, 42, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.secondary {
+.playStoreBtn:active {
+  transform: translateY(0);
+}
+
+.playIcon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  color: #34d399;
+}
+
+.playStoreText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.playStoreLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.playStoreMain {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.openAppBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 12px 16px;
+  padding: 13px 18px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
+  text-decoration: none;
   color: #4c1d95;
   background: #fff;
-  border: 1px solid rgba(76, 29, 149, 0.22);
-  text-decoration: none;
+  border: 1.5px solid rgba(76, 29, 149, 0.22);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
-.secondary:hover {
+.openAppBtn:hover {
   background: rgba(76, 29, 149, 0.06);
+  border-color: rgba(76, 29, 149, 0.35);
 }
 
-.secondaryMuted {
+.note {
   margin: 0;
-  padding: 12px 16px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 800;
-  color: #64748b;
-  background: #f8fafc;
-  border: 1px dashed rgba(100, 116, 139, 0.35);
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(76, 29, 149, 0.06);
+  border: 1px solid rgba(76, 29, 149, 0.12);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+  line-height: 1.6;
+  text-align: left;
 }
 
 .code {
+  margin-left: 2px;
   font-size: 11px;
   font-weight: 800;
-  color: #4c1d95;
+  color: #6d28d9;
 }
 
 .footer {
-  margin-top: 18px;
+  margin-top: 20px;
+  text-align: center;
   font-size: 11.5px;
   font-weight: 650;
   color: #94a3b8;
-  line-height: 1.5;
+}
+
+@media (max-width: 380px) {
+  .features {
+    grid-template-columns: 1fr;
+  }
+
+  .feature {
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 10px 14px;
+  }
+
+  .featureText {
+    font-size: 12.5px;
+  }
 }
