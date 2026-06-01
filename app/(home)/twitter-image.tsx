@@ -1,59 +1,28 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-
 import { ImageResponse } from 'next/og';
+import { headers } from 'next/headers';
 
+import { resolveHomeLocaleForRequest } from '@/lib/home-i18n';
+import { HOME_OG_SIZE, HomeOgImageMarkup } from '@/lib/home-og-image';
+
+export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const alt = '지닛';
-export const size = { width: 1200, height: 630 };
+export const size = HOME_OG_SIZE;
 export const contentType = 'image/png';
 
-function loadLogoDataUrl(): string {
-  const buf = readFileSync(join(process.cwd(), 'public', 'ginit-logo.png'));
-  return `data:image/png;base64,${buf.toString('base64')}`;
+type Props = {
+  searchParams: Promise<{ lang?: string | string[] }>;
+};
+
+function langFromSearchParams(lang: string | string[] | undefined): string | null {
+  if (lang == null) return null;
+  return Array.isArray(lang) ? (lang[0] ?? null) : lang;
 }
 
-export default function TwitterImage() {
-  const logoSrc = loadLogoDataUrl();
+export default async function TwitterImage({ searchParams }: Props) {
+  const sp = await searchParams;
+  const h = await headers();
+  const locale = resolveHomeLocaleForRequest(langFromSearchParams(sp.lang), h.get('accept-language'));
 
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#ffffff',
-        }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 240,
-            height: 240,
-            borderRadius: 48,
-            background: '#f5f3ff',
-          }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoSrc} width={168} height={168} alt="" />
-        </div>
-        <div
-          style={{
-            marginTop: 36,
-            fontSize: 64,
-            fontWeight: 700,
-            color: '#0a0a0a',
-            letterSpacing: '-0.04em',
-          }}>
-          지닛
-        </div>
-        <div style={{ marginTop: 10, fontSize: 28, color: '#6b6b6b' }}>올인원 모임 조율</div>
-      </div>
-    ),
-    { ...size },
-  );
+  return new ImageResponse(<HomeOgImageMarkup locale={locale} />, { ...HOME_OG_SIZE });
 }

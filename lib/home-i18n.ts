@@ -55,6 +55,10 @@ export type HomeContent = {
 const YOUTUBE_KO = 'k4RHJp1sqRc';
 const YOUTUBE_EN = 'bPErBntQH5E';
 
+export function youtubeThumbnailUrl(videoId: string): string {
+  return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+}
+
 const KO: HomeContent = {
   locale: 'ko',
   htmlLang: 'ko',

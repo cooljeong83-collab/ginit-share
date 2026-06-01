@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import GinitAppOpenLink from '@/app/GinitAppOpenLink';
 import { GINIT_PLAY_STORE_URL } from '@/lib/ginit-app-open';
+import { youtubeThumbnailUrl } from '@/lib/home-i18n';
 import { useHomeLocale } from '@/lib/use-home-locale';
 
 import { OnboardingIcon } from './OnboardingIcons';
@@ -68,6 +69,7 @@ export default function HomeLanding() {
   }, []);
 
   const youtubeEmbedSrc = `https://www.youtube-nocookie.com/embed/${c.youtubeVideoId}?rel=0&modestbranding=1`;
+  const youtubePosterSrc = youtubeThumbnailUrl(c.youtubeVideoId);
   let slideIndex = 0;
 
   return (
@@ -118,13 +120,21 @@ export default function HomeLanding() {
 
             <section className={styles.introVideo} aria-label={c.videoAria}>
               <div className={styles.introVideoFrame}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className={styles.videoPoster}
+                  src={youtubePosterSrc}
+                  alt=""
+                  width={1280}
+                  height={720}
+                />
                 <iframe
                   className={styles.video}
                   src={youtubeEmbedSrc}
                   title={c.videoTitle}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
-                  loading="lazy"
+                  loading="eager"
                   referrerPolicy="strict-origin-when-cross-origin"
                 />
               </div>

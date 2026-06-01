@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 
 import HomeLanding from './HomeLanding';
 import { getHomeContent, resolveHomeLocaleForRequest } from '@/lib/home-i18n';
-import { buildGinitShareMetadata } from '@/lib/site-og';
+import { buildGinitShareMetadata, homeOgImages } from '@/lib/site-og';
 import { toAbsoluteSiteUrl } from '@/lib/site-origin';
 
 type HomePageProps = {
@@ -22,11 +22,15 @@ export async function generateMetadata({ searchParams }: HomePageProps): Promise
   const locale = resolveHomeLocaleForRequest(langFromSearchParams(sp.lang), h.get('accept-language'));
   const { metaTitle, metaDescription } = getHomeContent(locale);
 
+  const homeUrl = locale === 'en' ? toAbsoluteSiteUrl('/?lang=en') : toAbsoluteSiteUrl('/');
+
   return {
     ...buildGinitShareMetadata({
       title: metaTitle,
       description: metaDescription,
-      url: toAbsoluteSiteUrl('/'),
+      url: homeUrl,
+      images: homeOgImages(locale),
+      locale,
     }),
   };
 }
