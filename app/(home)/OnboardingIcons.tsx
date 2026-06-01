@@ -1,6 +1,6 @@
 import type { SVGProps } from 'react';
 
-import type { OnboardingIconId } from '@/lib/home-onboarding';
+import type { OnboardingIconId } from '@/lib/home-i18n';
 
 function base(props: SVGProps<SVGSVGElement>) {
   return {

@@ -5,13 +5,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import GinitAppOpenLink from '@/app/GinitAppOpenLink';
 import { GINIT_PLAY_STORE_URL } from '@/lib/ginit-app-open';
-import { FEATURE_SLIDES, HIGHLIGHT_SLIDES } from '@/lib/home-onboarding';
+import { useHomeLocale } from '@/lib/use-home-locale';
 
 import { OnboardingIcon } from './OnboardingIcons';
 import styles from './page.module.css';
-
-const YOUTUBE_VIDEO_ID = 'k4RHJp1sqRc';
-const SLIDE_COUNT = 1 + FEATURE_SLIDES.length + HIGHLIGHT_SLIDES.length;
 
 function useScrollSlides(containerRef: React.RefObject<HTMLElement | null>) {
   const [active, setActive] = useState(0);
@@ -58,16 +55,19 @@ function useScrollSlides(containerRef: React.RefObject<HTMLElement | null>) {
 }
 
 export default function HomeLanding() {
+  const { c } = useHomeLocale();
   const deckRef = useRef<HTMLElement>(null);
   const { active, scrollTo } = useScrollSlides(deckRef);
   const [ready, setReady] = useState(false);
+
+  const slideCount = 1 + c.featureSlides.length + c.highlightSlides.length;
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setReady(true));
     return () => cancelAnimationFrame(id);
   }, []);
 
-  const youtubeEmbedSrc = `https://www.youtube-nocookie.com/embed/${YOUTUBE_VIDEO_ID}?rel=0&modestbranding=1`;
+  const youtubeEmbedSrc = `https://www.youtube-nocookie.com/embed/${c.youtubeVideoId}?rel=0&modestbranding=1`;
   let slideIndex = 0;
 
   return (
@@ -79,24 +79,24 @@ export default function HomeLanding() {
         <span className={styles.gridFade} />
       </div>
 
-      <nav className={styles.dots} aria-label="온보딩 섹션">
-        {Array.from({ length: SLIDE_COUNT }, (_, i) => (
+      <nav className={styles.dots} aria-label={c.dotsAria}>
+        {Array.from({ length: slideCount }, (_, i) => (
           <button
             key={i}
             type="button"
             className={`${styles.dot} ${active === i ? styles.dotActive : ''}`}
-            aria-label={`${i + 1}번째 화면`}
+            aria-label={c.slideAria(i + 1)}
             aria-current={active === i ? 'true' : undefined}
             onClick={() => scrollTo(i)}
           />
         ))}
       </nav>
 
-      <section ref={deckRef} className={styles.deck} aria-label="지닛 소개">
+      <section ref={deckRef} className={styles.deck} aria-label={c.onboardingAria}>
         <article
           data-slide={slideIndex++}
           className={`${styles.slide} ${styles.slideIntro} ${active === 0 ? styles.slideActive : ''}`}
-          aria-label="지닛 홈">
+          aria-label={c.homeAria}>
           <div className={styles.introInner}>
             <header className={styles.hero}>
               <div className={styles.logoRing}>
@@ -109,19 +109,19 @@ export default function HomeLanding() {
                   priority
                 />
               </div>
-              <p className={styles.brand}>지닛</p>
+              <p className={styles.brand}>{c.brand}</p>
               <h1 className={styles.headline}>
-                <span className={styles.headlineMain}>모임의 시작부터 마무리까지,</span>
-                <span className={styles.headlineAccent}>하나로!</span>
+                <span className={styles.headlineMain}>{c.headlineMain}</span>
+                <span className={styles.headlineAccent}>{c.headlineAccent}</span>
               </h1>
             </header>
 
-            <section className={styles.introVideo} aria-label="소개 영상">
+            <section className={styles.introVideo} aria-label={c.videoAria}>
               <div className={styles.introVideoFrame}>
                 <iframe
                   className={styles.video}
                   src={youtubeEmbedSrc}
-                  title="지닛 소개 영상"
+                  title={c.videoTitle}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                   loading="lazy"
@@ -130,7 +130,7 @@ export default function HomeLanding() {
               </div>
             </section>
 
-            <section className={styles.introCta} aria-label="다운로드">
+            <section className={styles.introCta} aria-label={c.downloadAria}>
               <div className={styles.introActions}>
                 <a
                   href={GINIT_PLAY_STORE_URL}
@@ -138,17 +138,17 @@ export default function HomeLanding() {
                   target="_blank"
                   rel="noopener noreferrer">
                   <span className={styles.btnShine} aria-hidden />
-                  Google Play 다운로드
+                  {c.googlePlay}
                 </a>
-                <GinitAppOpenLink className={styles.introBtnGhost}>앱 열기</GinitAppOpenLink>
+                <GinitAppOpenLink className={styles.introBtnGhost}>{c.openApp}</GinitAppOpenLink>
               </div>
             </section>
 
-            <p className={styles.introScrollCue}>아래로 넘겨 기능 살펴보기</p>
+            <p className={styles.introScrollCue}>{c.scrollCue}</p>
           </div>
         </article>
 
-        {FEATURE_SLIDES.map((item) => {
+        {c.featureSlides.map((item) => {
           const idx = slideIndex++;
           return (
             <article
@@ -171,7 +171,7 @@ export default function HomeLanding() {
           );
         })}
 
-        {HIGHLIGHT_SLIDES.map((item) => {
+        {c.highlightSlides.map((item) => {
           const idx = slideIndex++;
           return (
             <article

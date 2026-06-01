@@ -1,21 +1,24 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 
 import HomeLanding from './HomeLanding';
+import { getHomeContent, resolveHomeLocaleFromAcceptLanguage } from '@/lib/home-i18n';
 import { buildGinitShareMetadata } from '@/lib/site-og';
 import { toAbsoluteSiteUrl } from '@/lib/site-origin';
 
-const homeDesc =
-  '지닛은 일정 후보, 장소, 투표, 채팅까지 모임을 한곳에서 돕는 앱입니다. 호스트가 보낸 링크로 웹에서도 참여할 수 있어요.';
+export async function generateMetadata(): Promise<Metadata> {
+  const h = await headers();
+  const locale = resolveHomeLocaleFromAcceptLanguage(h.get('accept-language'));
+  const { metaTitle, metaDescription } = getHomeContent(locale);
 
-const homeTitle = '지닛 — 모임·약속 앱';
-
-export const metadata: Metadata = {
-  ...buildGinitShareMetadata({
-    title: homeTitle,
-    description: homeDesc,
-    url: toAbsoluteSiteUrl('/'),
-  }),
-};
+  return {
+    ...buildGinitShareMetadata({
+      title: metaTitle,
+      description: metaDescription,
+      url: toAbsoluteSiteUrl('/'),
+    }),
+  };
+}
 
 export default function HomePage() {
   return <HomeLanding />;
