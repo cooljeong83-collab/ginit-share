@@ -250,8 +250,16 @@ function baseLang(tag: string): string | null {
   return t.split(/[-_]/)[0] ?? null;
 }
 
-/** 한국(지역·시간대·ko)이면 ko, 아니면 en */
-export function resolveHomeLocale(): HomeLocale {
+/** `?lang=ko` | `?lang=en` (별칭: kr, english) */
+export function parseHomeLocaleParam(value: string | null | undefined): HomeLocale | null {
+  if (value == null || value === '') return null;
+  const v = value.trim().toLowerCase();
+  if (v === 'ko' || v === 'kr') return 'ko';
+  if (v === 'en') return 'en';
+  return null;
+}
+
+function detectHomeLocaleAuto(): HomeLocale {
   if (typeof navigator === 'undefined') return 'ko';
 
   try {
@@ -274,6 +282,13 @@ export function resolveHomeLocale(): HomeLocale {
   return 'en';
 }
 
+/** URL `lang` 우선, 없으면 브라우저·시간대 자동 감지 */
+export function resolveHomeLocale(langOverride?: string | null): HomeLocale {
+  const forced = parseHomeLocaleParam(langOverride);
+  if (forced) return forced;
+  return detectHomeLocaleAuto();
+}
+
 /** Accept-Language 헤더(서버 메타데이터용) */
 export function resolveHomeLocaleFromAcceptLanguage(header: string | null): HomeLocale {
   if (!header) return 'ko';
@@ -284,6 +299,16 @@ export function resolveHomeLocaleFromAcceptLanguage(header: string | null): Home
   }
 
   return 'en';
+}
+
+/** `?lang=` + Accept-Language (서버 메타데이터) */
+export function resolveHomeLocaleForRequest(
+  langParam: string | null | undefined,
+  acceptLanguage: string | null,
+): HomeLocale {
+  const forced = parseHomeLocaleParam(langParam);
+  if (forced) return forced;
+  return resolveHomeLocaleFromAcceptLanguage(acceptLanguage);
 }
 
 export function getHomeContent(locale: HomeLocale): HomeContent {
