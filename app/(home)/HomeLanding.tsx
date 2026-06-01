@@ -62,11 +62,54 @@ export default function HomeLanding() {
   const [ready, setReady] = useState(false);
 
   const slideCount = 1 + c.featureSlides.length + c.highlightSlides.length;
+  const lastSlideIndex = slideCount - 1;
+  const loopLockRef = useRef(false);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setReady(true));
     return () => cancelAnimationFrame(id);
   }, []);
+
+  useEffect(() => {
+    const deck = deckRef.current;
+    if (!deck || slideCount < 2) return;
+
+    const goToStart = () => {
+      if (loopLockRef.current) return;
+      loopLockRef.current = true;
+      scrollTo(0);
+      window.setTimeout(() => {
+        loopLockRef.current = false;
+      }, 700);
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      if (active !== lastSlideIndex) return;
+      if (e.deltaY <= 8) return;
+      e.preventDefault();
+      goToStart();
+    };
+
+    let touchStartY = 0;
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0]?.clientY ?? 0;
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (active !== lastSlideIndex) return;
+      const endY = e.changedTouches[0]?.clientY ?? 0;
+      if (touchStartY - endY > 48) goToStart();
+    };
+
+    deck.addEventListener('wheel', onWheel, { passive: false });
+    deck.addEventListener('touchstart', onTouchStart, { passive: true });
+    deck.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      deck.removeEventListener('wheel', onWheel);
+      deck.removeEventListener('touchstart', onTouchStart);
+      deck.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [active, lastSlideIndex, scrollTo, slideCount]);
 
   const youtubeEmbedSrc = `https://www.youtube-nocookie.com/embed/${c.youtubeVideoId}?rel=0&modestbranding=1`;
   const youtubePosterSrc = youtubeThumbnailUrl(c.youtubeVideoId);
