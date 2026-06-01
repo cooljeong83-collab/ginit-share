@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-import { getHomeContent, parseHomeLocaleParam } from '@/lib/home-i18n';
+import { parseHomeLocaleParam } from '@/lib/home-i18n';
 import { HOME_OG_SIZE, HomeOgImageMarkup } from '@/lib/home-og-image';
 
 export const runtime = 'nodejs';
