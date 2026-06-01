@@ -5,7 +5,7 @@ import { buildGinitShareMetadata } from '@/lib/site-og';
 import { toAbsoluteSiteUrl } from '@/lib/site-origin';
 
 const homeDesc =
-  '카톡·지도·정산을 오가지 마세요. 지닛은 일정·장소·투표·채팅·도착·AI 정산까지 올인원으로 모임을 조율하는 앱입니다.';
+  '모임·약속을 한곳에서. 지닛은 일정·장소·투표·채팅·도착·정산까지 올인원 모임 앱입니다.';
 
 const homeTitle = '지닛 — 모임·약속 앱';
 

@@ -1,93 +1,10 @@
-/** 홈 랜딩 카피 — 앱 스토어 설명 기반 */
+/** 홈 랜딩 — 짧은 단어·문구만 */
 
-export const PAIN_APPS = [
-  '카톡',
-  '오픈채팅',
-  '네이버 지도',
-  '투표',
-  '도착 확인',
-  '정산 앱',
-  '영수증 사진',
-] as const;
+export const HOME_HOOK = '앱 여러 개?';
+export const HOME_TITLE = '지닛';
+export const HOME_SUB = '모임·약속, 한곳에서';
 
-export const PILLARS = [
-  {
-    id: 'discover',
-    label: '만들고 찾기',
-    title: '12가지 테마 & AI 장소',
-    desc: '미팅·벙개·동호회·운동·맛집 등 테마별 모임. AI가 장소를 추천하고 지도·피드로 주변 공개 모임을 탐색.',
-  },
-  {
-    id: 'coordinate',
-    label: '빠른 조율',
-    title: '참여와 동시에 일정·장소',
-    desc: '마음에 드는 모임에 참여하며 날짜·장소를 제안·투표. 앱 없는 친구는 웹 공유 링크로 함께 참여.',
-  },
-  {
-    id: 'connect',
-    label: '소통',
-    title: '번역·리액션 채팅',
-    desc: '모임 전용 채팅, 실시간 메시지 번역, 리액션·이모지. 한·영·일 다국어로 글로벌 모임.',
-  },
-  {
-    id: 'finish',
-    label: '모임 끝까지',
-    title: '도착 · 정산 · 추억',
-    desc: '장소 도착 인증·알림, AI OCR 영수증 정산, 후기·추억 기록까지 한 흐름으로.',
-  },
-] as const;
+export const REPLACE_FROM = ['카톡', '지도', '정산'] as const;
+export const FEATURE_WORDS = ['일정', '장소', '투표', '채팅', '도착', '정산'] as const;
 
-export const HIGHLIGHTS = [
-  {
-    num: '01',
-    title: 'AI 장소 & 12가지 테마',
-    desc: '모임 성격에 맞는 장소 자동 추천·후보 등록',
-  },
-  {
-    num: '02',
-    title: '초간편 약속 조율',
-    desc: '참여와 동시에 일자·장소 제안·투표',
-  },
-  {
-    num: '03',
-    title: '웹 공유 참여',
-    desc: '앱 미설치 친구도 링크로 투표 참여',
-  },
-  {
-    num: '04',
-    title: '스마트 모임 채팅',
-    desc: '번역·리액션·이모지로 활기찬 대화',
-  },
-  {
-    num: '05',
-    title: '도착 인증 & 알림',
-    desc: '약속 30분 전부터 장소 인증·실시간 알림',
-  },
-  {
-    num: '06',
-    title: 'AI 영수증 정산',
-    desc: '사진 한 장으로 금액 인식·자동 분배',
-  },
-  {
-    num: '07',
-    title: '후기 & 추억',
-    desc: '모임 후기·장소 소개·혜택 연계',
-  },
-  {
-    num: '08',
-    title: '글로벌 & 자동 번역',
-    desc: '다국어 서비스·맛집 검색 번역',
-  },
-  {
-    num: '09',
-    title: '친구 & 비공개 모임',
-    desc: '친구 초대·우리만의 비공개 모임',
-  },
-] as const;
-
-export const AUDIENCE = [
-  '카톡에서 "언제·어디"만 몇 시간씩 조율하는 분',
-  '동네 모임·동호회·직장·대학 모임을 찾는 분',
-  '번역 채팅으로 외국인 친구와 자연스럽게 대화하고 싶은 분',
-  '영수증·더치페이 정산을 앱에 맡기고 싶은 분',
-] as const;
+export const YOUTUBE_VIDEO_ID = 'k4RHJp1sqRc';
