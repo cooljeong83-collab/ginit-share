@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 import HomeLanding from './HomeLanding';
 import { getHomeContent, resolveHomeLocaleForRequest } from '@/lib/home-i18n';
 import { buildGinitShareMetadata, homeOgImages } from '@/lib/site-og';
-import { toAbsoluteSiteUrl } from '@/lib/site-origin';
+import { resolveMetadataBase, toAbsoluteSiteUrl } from '@/lib/site-origin';
 
 type HomePageProps = {
   searchParams: Promise<{ lang?: string | string[] }>;
@@ -25,6 +25,7 @@ export async function generateMetadata({ searchParams }: HomePageProps): Promise
   const homeUrl = locale === 'en' ? toAbsoluteSiteUrl('/?lang=en') : toAbsoluteSiteUrl('/');
 
   return {
+    metadataBase: resolveMetadataBase(),
     ...buildGinitShareMetadata({
       title: metaTitle,
       description: metaDescription,

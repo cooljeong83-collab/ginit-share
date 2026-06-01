@@ -98,8 +98,8 @@ const KO: HomeContent = {
       id: 'chat',
       step: '03',
       title: '채팅 & 번역',
-      desc: '모임 전용 채팅에 실시간 번역이 더해져, 언어 장벽 없이 대화해요.',
-      highlight: '글로벌 모임 OK',
+      desc: '모임 전용 채팅과 실시간 번역으로 언어 장벽 없이 대화해요.',
+      highlight: '7개 언어 지원',
     },
     {
       id: 'arrival',
@@ -127,8 +127,8 @@ const KO: HomeContent = {
     {
       id: 'global',
       title: '언어의 장벽 없이',
-      desc: '실시간 번역으로 글로벌 친구와 자연스럽게 이어져요.',
-      sub: '한·영·일 다국어 지원',
+      desc: '한국어, 영어, 일본어, 중국어, 대만어, 라틴어, 베트남어를 지원하는 실시간 번역으로 글로벌 친구와 자연스럽게 이어져요.',
+      sub: '7개 언어 지원',
     },
     {
       id: 'link',
@@ -156,8 +156,8 @@ const EN: HomeContent = {
   htmlLang: 'en',
   youtubeVideoId: YOUTUBE_EN,
   brand: 'Ginit',
-  headlineMain: 'From start to finish,',
-  headlineAccent: 'all in one place.',
+  headlineMain: 'Meet Friends in Korea',
+  headlineAccent: '',
   videoTitle: 'Ginit intro video',
   googlePlay: 'Get it on Google Play',
   openApp: 'Open app',
@@ -168,7 +168,7 @@ const EN: HomeContent = {
   onboardingAria: 'About Ginit',
   videoAria: 'Intro video',
   downloadAria: 'Download',
-  metaTitle: 'Ginit — Meetups & plans',
+  metaTitle: 'Ginit — Meet Friends in Korea',
   metaDescription:
     'Ginit helps groups pick dates, places, polls, and chat in one app. Join from a shared link on the web—no install required.',
   featureSlides: [
@@ -190,8 +190,8 @@ const EN: HomeContent = {
       id: 'chat',
       step: '03',
       title: 'Chat & translate',
-      desc: 'Dedicated group chat with live translation—talk across languages.',
-      highlight: 'Global-friendly',
+      desc: 'Group chat with live translation—talk across languages with ease.',
+      highlight: '7 languages',
     },
     {
       id: 'arrival',
@@ -219,8 +219,8 @@ const EN: HomeContent = {
     {
       id: 'global',
       title: 'No language barrier',
-      desc: 'Live translation keeps global friends in the same conversation.',
-      sub: 'Korean · English · Japanese',
+      desc: 'Live translation supports Korean, English, Japanese, Chinese, Taiwanese, Latin, and Vietnamese—stay close with friends worldwide.',
+      sub: '7 languages supported',
     },
     {
       id: 'link',

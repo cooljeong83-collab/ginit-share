@@ -20,13 +20,13 @@ export function ginitLogoOgImages(alt = '지닛') {
   return [{ url, width: 512, height: 512, alt, type: 'image/png' as const }];
 }
 
-/** 홈 링크 미리보기 — 1200×630 OG 이미지 (로케일별) */
+/** 홈 링크 미리보기 — 1200×630 (opengraph-image.tsx 는 query 미지원 → API 사용) */
 export function homeOgImages(locale: HomeLocale) {
-  const langQ = locale === 'en' ? '?lang=en' : '';
+  const lang = locale === 'en' ? 'en' : 'ko';
   const alt = locale === 'en' ? 'Ginit' : '지닛';
   return [
     {
-      url: toAbsoluteSiteUrl(`/opengraph-image${langQ}`),
+      url: toAbsoluteSiteUrl(`/api/home-og?lang=${lang}`),
       width: 1200,
       height: 630,
       alt,

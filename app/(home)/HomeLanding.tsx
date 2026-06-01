@@ -114,7 +114,9 @@ export default function HomeLanding() {
               <p className={styles.brand}>{c.brand}</p>
               <h1 className={styles.headline}>
                 <span className={styles.headlineMain}>{c.headlineMain}</span>
-                <span className={styles.headlineAccent}>{c.headlineAccent}</span>
+                {c.headlineAccent ? (
+                  <span className={styles.headlineAccent}>{c.headlineAccent}</span>
+                ) : null}
               </h1>
             </header>
 
