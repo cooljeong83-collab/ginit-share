@@ -6,15 +6,21 @@ import type { MouseEvent, ReactNode } from 'react';
 type GinitAppOpenLinkProps = {
   className?: string;
   meetingId?: string | null;
+  shareToken?: string | null;
   children: ReactNode;
 };
 
-export default function GinitAppOpenLink({ className, meetingId, children }: GinitAppOpenLinkProps) {
-  const href = resolveGinitAppDeepLink(meetingId);
+export default function GinitAppOpenLink({
+  className,
+  meetingId,
+  shareToken,
+  children,
+}: GinitAppOpenLinkProps) {
+  const href = resolveGinitAppDeepLink(meetingId, shareToken);
 
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    openGinitApp(meetingId);
+    openGinitApp(meetingId, shareToken);
   };
 
   return (

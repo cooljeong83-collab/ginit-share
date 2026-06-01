@@ -1,6 +1,6 @@
 # 웹 공유 QA 체크리스트
 
-환경: Supabase `0273`–`0279` 적용, ginit-share 최신 배포.
+환경: Supabase `0273`–`0279`·`0326` 적용, ginit-share·ginit-app 최신 배포.
 
 **필수 Vercel env:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, **`SUPABASE_SERVICE_ROLE_KEY`** (서버 전용).  
 guest RPC는 브라우저가 `/api/share/*`만 호출 — anon 키로 `meeting_share_guest_*` 직접 RPC 불가(`0279`).
@@ -39,6 +39,19 @@ guest RPC는 브라우저가 `/api/share/*`만 호출 — anon 키로 `meeting_s
 5. (선택) 레거시 참여자(해시 없음) 나가기 → `leave_secret_required` 안내.
 6. **URL**: `placeCandidates[].naverPlaceLink`가 `https://evil.example`이면 guest_get·웹 UI에서 링크 없음(0276).
 
+## 비공개 모임 · 웹 공유 → 지닛 참여 (0326)
+
+1. 호스트가 비공개 모임 웹 공유 링크 생성 → `/s/{token}` 로드·게스트 참여 OK (회귀).
+2. **지닛 참여** → 앱(로그인) → 모임 상세 표시 — 「모임을 찾을 수 없어요」 없음.
+3. 비공개·즉시 참여: 앱 **참여하기** → `participantIds`에 앱 계정 반영.
+4. (공개·HOST_APPROVAL만 해당) 웹 참가 신청 회귀; 앱 딥링크는 상세 조회 후 앱 참가 신청.
+
 ## 앱 UI
 
 1. 웹 게스트 닉 표시, 탭 시 「웹 참여자」 안내.
+
+## 회귀 (딥링크·권한)
+
+1. 공개 모임 `ginitapp://meeting/{id}` (shareToken 없음) — 기존과 동일.
+2. 앱 비공개 **친구 초대**만(token 없음) — 상세·참여 OK.
+3. 만료·잘못된 shareToken 딥링크 — 앱 접근 불가(기존과 동일).

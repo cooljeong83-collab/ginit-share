@@ -1548,7 +1548,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
               {m.saveCalendar}
             </button>
           ) : null}
-          <GinitAppOpenLink meetingId={meetingId} className="gPillBtn gPillPrimary">
+          <GinitAppOpenLink meetingId={meetingId} shareToken={token} className="gPillBtn gPillPrimary">
             <img src="/ginit-logo.png" alt="" className="gPillBtnLogo" width={22} height={22} />
             {m.openInApp}
           </GinitAppOpenLink>
