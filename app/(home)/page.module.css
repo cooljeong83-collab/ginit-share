@@ -98,7 +98,7 @@
 
 .logoRing {
   display: inline-flex;
-  margin-bottom: 20px;
+  margin-bottom: 6px;
   opacity: 0;
   transform: scale(0.82) translateY(8px);
 }
@@ -108,33 +108,32 @@
 }
 
 .logo {
-  width: 64px;
-  height: 64px;
+  width: 96px;
+  height: 96px;
   object-fit: contain;
   display: block;
 }
 
-.kicker {
-  margin: 0 0 10px;
-  font-size: 0.72rem;
+.brand {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
   font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--muted);
+  letter-spacing: -0.03em;
+  color: var(--accent);
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(8px);
 }
 
-.ready .kicker {
-  animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.08s forwards;
+.ready .brand {
+  animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.06s forwards;
 }
 
 .headline {
   margin: 0;
-  font-size: clamp(2.1rem, 8vw, 2.65rem);
+  font-size: clamp(1.65rem, 6.5vw, 2.1rem);
   font-weight: 600;
-  letter-spacing: -0.045em;
-  line-height: 1.12;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
 }
 
 .headlineMain,
@@ -145,12 +144,81 @@
 }
 
 .ready .headlineMain {
-  animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.14s forwards;
+  animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.12s forwards;
 }
 
 .ready .headlineAccent {
-  animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.24s forwards;
+  animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
   color: var(--accent);
+}
+
+/* —— Feature icons —— */
+.featureBlock {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.featureBlock.inView {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.featureItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+}
+
+.featureBlock.inView .featureItem {
+  animation: featIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(0.06s * var(--feat-i, 0) + 0.08s);
+}
+
+.featureIconBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 72px;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  color: var(--accent);
+  background: #fff;
+  border: 1px solid rgba(109, 40, 217, 0.12);
+  box-shadow:
+    0 4px 14px -6px rgba(109, 40, 217, 0.25),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+
+.featureLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+@keyframes featIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes popIn {
@@ -332,75 +400,32 @@
   background: #fff;
 }
 
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.chips li {
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--muted);
-  background: var(--accent-soft);
-  border: 1px solid rgba(109, 40, 217, 0.14);
-  opacity: 0;
-  transform: translateY(10px) scale(0.94);
-}
-
-.chips li.chipVisible {
-  animation: chipIn 0.5s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
-  animation-delay: calc(0.12s * var(--chip-i, 0) + 0.15s);
-}
-
-@keyframes chipIn {
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+@media (min-width: 400px) {
+  .featureGrid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px 8px;
   }
-}
 
-.note {
-  margin: 0;
-  text-align: center;
-  font-size: 0.78rem;
-  font-weight: 400;
-  color: var(--muted);
-  line-height: 1.55;
-  opacity: 0;
-  transition: opacity 0.5s ease 0.45s;
-}
+  .featureIconBox {
+    max-width: 56px;
+  }
 
-.ctaBlock.inView .note {
-  opacity: 1;
-}
-
-.code {
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 0.76rem;
-  color: var(--accent);
-}
-
-.footer {
-  text-align: center;
-  font-size: 0.72rem;
-  color: var(--muted);
-  opacity: 0;
-}
-
-.ready .footer {
-  animation: fadeUp 0.5s ease 1s forwards;
+  .featureLabel {
+    font-size: 0.65rem;
+  }
 }
 
 @media (min-width: 520px) {
   .inner {
-    max-width: 480px;
+    max-width: 520px;
+  }
+
+  .featureIconBox {
+    max-width: 64px;
+  }
+
+  .featureLabel {
+    font-size: 0.7rem;
   }
 }
 
@@ -412,23 +437,23 @@
   }
 
   .logoRing,
-  .kicker,
+  .brand,
   .headlineMain,
-  .headlineAccent,
-  .footer {
+  .headlineAccent {
     animation: none;
     opacity: 1;
     transform: none;
   }
 
   .ready .logoRing,
-  .ready .kicker,
+  .ready .brand,
   .ready .headlineMain,
   .ready .headlineAccent {
     opacity: 1;
     transform: none;
   }
 
+  .featureBlock,
   .videoBlock,
   .ctaBlock {
     opacity: 1;
@@ -436,17 +461,16 @@
     transition: none;
   }
 
-  .videoLink,
-  .note {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-
-  .chips li {
+  .featureItem {
     opacity: 1;
     transform: none;
     animation: none;
+  }
+
+  .videoLink {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 
   .btnPrimary:hover,
