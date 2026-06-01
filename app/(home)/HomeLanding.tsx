@@ -1,127 +1,66 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef, useState, type CSSProperties, type SVGProps } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import GinitAppOpenLink from '@/app/GinitAppOpenLink';
 import { GINIT_PLAY_STORE_URL } from '@/lib/ginit-app-open';
+import { FEATURE_SLIDES, HIGHLIGHT_SLIDES } from '@/lib/home-onboarding';
 
+import { OnboardingIcon } from './OnboardingIcons';
 import styles from './page.module.css';
 
 const YOUTUBE_VIDEO_ID = 'k4RHJp1sqRc';
+const SLIDE_COUNT = 1 + FEATURE_SLIDES.length + HIGHLIGHT_SLIDES.length;
 
-const FEATURE_ITEMS = [
-  { id: 'search', label: '모임 탐색', Icon: IconSearch },
-  { id: 'schedule', label: '일정 조율', Icon: IconCalendarCheck },
-  { id: 'chat', label: '채팅 & 번역', Icon: IconChat },
-  { id: 'arrival', label: '도착 인증', Icon: IconPin },
-  { id: 'receipt', label: '영수증 정산', Icon: IconReceipt },
-  { id: 'review', label: '후기 & 혜택', Icon: IconPeople },
-] as const;
-
-function iconProps(props: SVGProps<SVGSVGElement>): SVGProps<SVGSVGElement> {
-  return {
-    width: 28,
-    height: 28,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 1.75,
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-    'aria-hidden': true,
-    ...props,
-  };
-}
-
-function IconSearch(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <circle cx="11" cy="11" r="6" />
-      <path d="M16 16l4.5 4.5" />
-    </svg>
-  );
-}
-
-function IconCalendarCheck(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <rect x="4" y="5" width="16" height="15" rx="2" />
-      <path d="M8 3v4M16 3v4M4 10h16" />
-      <path d="M9 14.5l2 2 4-4.5" />
-    </svg>
-  );
-}
-
-function IconChat(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <path d="M5 6.5a3 3 0 013-3h8a3 3 0 013 3v5a3 3 0 01-3 3h-5l-4.5 3.5V14.5a3 3 0 01-3-3v-5z" />
-      <circle cx="9" cy="9.5" r="0.85" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="9.5" r="0.85" fill="currentColor" stroke="none" />
-      <circle cx="15" cy="9.5" r="0.85" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-function IconPin(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <path d="M12 21s6-5.2 6-10a6 6 0 10-12 0c0 4.8 6 10 6 10z" />
-      <circle cx="12" cy="11" r="2.25" />
-    </svg>
-  );
-}
-
-function IconReceipt(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <path d="M7 4h10a2 2 0 012 2v14l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5-2 1.5V6a2 2 0 012-2z" />
-      <path d="M9 9h6M9 12.5h6M9 16h4" />
-    </svg>
-  );
-}
-
-function IconPeople(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <circle cx="9" cy="9" r="2.75" />
-      <circle cx="16.5" cy="10" r="2.25" />
-      <path d="M4.5 19c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4M13.5 19c0-1.8 1.4-3.2 3-3.5" />
-    </svg>
-  );
-}
-
-function useInView<T extends HTMLElement>(rootMargin = '0px 0px -6% 0px') {
-  const ref = useRef<T>(null);
-  const [inView, setInView] = useState(false);
+function useScrollSlides(containerRef: React.RefObject<HTMLElement | null>) {
+  const [active, setActive] = useState(0);
 
   useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
+    const root = containerRef.current;
+    if (!root) return;
+
+    const slides = root.querySelectorAll<HTMLElement>('[data-slide]');
+    if (!slides.length) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setInView(true);
-          observer.disconnect();
+      (entries) => {
+        let bestIdx = -1;
+        let bestRatio = 0;
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const idx = Number((entry.target as HTMLElement).dataset.slide);
+          if (Number.isNaN(idx)) continue;
+          if (entry.intersectionRatio > bestRatio) {
+            bestRatio = entry.intersectionRatio;
+            bestIdx = idx;
+          }
         }
+        if (bestIdx >= 0) setActive(bestIdx);
       },
-      { threshold: 0.12, rootMargin },
+      { root, threshold: [0.4, 0.55, 0.7] },
     );
 
-    observer.observe(node);
+    slides.forEach((slide) => observer.observe(slide));
     return () => observer.disconnect();
-  }, [rootMargin]);
+  }, [containerRef]);
 
-  return { ref, inView };
+  const scrollTo = useCallback((index: number) => {
+    const root = containerRef.current;
+    if (!root) return;
+    root.querySelector<HTMLElement>(`[data-slide="${index}"]`)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, [containerRef]);
+
+  return { active, scrollTo };
 }
 
 export default function HomeLanding() {
+  const deckRef = useRef<HTMLElement>(null);
+  const { active, scrollTo } = useScrollSlides(deckRef);
   const [ready, setReady] = useState(false);
-  const features = useInView<HTMLElement>();
-  const video = useInView<HTMLElement>();
-  const cta = useInView<HTMLElement>();
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setReady(true));
@@ -129,87 +68,131 @@ export default function HomeLanding() {
   }, []);
 
   const youtubeEmbedSrc = `https://www.youtube-nocookie.com/embed/${YOUTUBE_VIDEO_ID}?rel=0&modestbranding=1`;
+  let slideIndex = 0;
 
   return (
-    <main className={`${styles.page} ${ready ? styles.ready : ''}`}>
+    <main
+      className={`${styles.page} ${ready ? styles.ready : ''} ${active === 0 ? styles.pageOnIntro : ''}`}>
       <div className={styles.ambient} aria-hidden>
         <span className={styles.orbA} />
         <span className={styles.orbB} />
         <span className={styles.gridFade} />
       </div>
 
-      <div className={styles.inner}>
-        <header className={styles.hero}>
-          <div className={styles.logoRing}>
-            <Image
-              src="/ginit-logo.png"
-              alt=""
-              width={96}
-              height={96}
-              className={styles.logo}
-              priority
-            />
-          </div>
-          <p className={styles.brand}>지닛</p>
-          <h1 className={styles.headline}>
-            <span className={styles.headlineMain}>모임의 시작부터 마무리까지,</span>
-            <span className={styles.headlineAccent}>하나로!</span>
-          </h1>
-        </header>
+      <nav className={styles.dots} aria-label="온보딩 섹션">
+        {Array.from({ length: SLIDE_COUNT }, (_, i) => (
+          <button
+            key={i}
+            type="button"
+            className={`${styles.dot} ${active === i ? styles.dotActive : ''}`}
+            aria-label={`${i + 1}번째 화면`}
+            aria-current={active === i ? 'true' : undefined}
+            onClick={() => scrollTo(i)}
+          />
+        ))}
+      </nav>
 
-        <section
-          ref={features.ref}
-          className={`${styles.featureBlock} ${features.inView ? styles.inView : ''}`}
-          aria-label="주요 기능">
-          <ul className={styles.featureGrid}>
-            {FEATURE_ITEMS.map(({ id, label, Icon }, index) => (
-              <li
-                key={id}
-                className={styles.featureItem}
-                style={{ '--feat-i': index } as CSSProperties}>
-                <span className={styles.featureIconBox}>
-                  <Icon />
-                </span>
-                <span className={styles.featureLabel}>{label}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+      <section ref={deckRef} className={styles.deck} aria-label="지닛 소개">
+        <article
+          data-slide={slideIndex++}
+          className={`${styles.slide} ${styles.slideIntro} ${active === 0 ? styles.slideActive : ''}`}
+          aria-label="지닛 홈">
+          <div className={styles.introInner}>
+            <header className={styles.hero}>
+              <div className={styles.logoRing}>
+                <Image
+                  src="/ginit-logo.png"
+                  alt=""
+                  width={96}
+                  height={96}
+                  className={styles.logo}
+                  priority
+                />
+              </div>
+              <p className={styles.brand}>지닛</p>
+              <h1 className={styles.headline}>
+                <span className={styles.headlineMain}>모임의 시작부터 마무리까지,</span>
+                <span className={styles.headlineAccent}>하나로!</span>
+              </h1>
+            </header>
 
-        <section
-          ref={video.ref}
-          className={`${styles.videoBlock} ${video.inView ? styles.inView : ''}`}
-          aria-label="소개 영상">
-          <div className={styles.videoFrame}>
-            <iframe
-              className={styles.video}
-              src={youtubeEmbedSrc}
-              title="지닛 소개 영상"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="strict-origin-when-cross-origin"
-            />
-          </div>
-        </section>
+            <section className={styles.introVideo} aria-label="소개 영상">
+              <div className={styles.introVideoFrame}>
+                <iframe
+                  className={styles.video}
+                  src={youtubeEmbedSrc}
+                  title="지닛 소개 영상"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
+              </div>
+            </section>
 
-        <section
-          ref={cta.ref}
-          className={`${styles.ctaBlock} ${cta.inView ? styles.inView : ''}`}
-          aria-label="다운로드">
-          <div className={styles.actions}>
-            <a
-              href={GINIT_PLAY_STORE_URL}
-              className={styles.btnPrimary}
-              target="_blank"
-              rel="noopener noreferrer">
-              <span className={styles.btnShine} aria-hidden />
-              Google Play 다운로드
-            </a>
-            <GinitAppOpenLink className={styles.btnGhost}>앱 열기</GinitAppOpenLink>
+            <section className={styles.introCta} aria-label="다운로드">
+              <div className={styles.introActions}>
+                <a
+                  href={GINIT_PLAY_STORE_URL}
+                  className={styles.introBtnPrimary}
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  <span className={styles.btnShine} aria-hidden />
+                  Google Play 다운로드
+                </a>
+                <GinitAppOpenLink className={styles.introBtnGhost}>앱 열기</GinitAppOpenLink>
+              </div>
+            </section>
+
+            <p className={styles.introScrollCue}>아래로 넘겨 기능 살펴보기</p>
           </div>
-        </section>
-      </div>
+        </article>
+
+        {FEATURE_SLIDES.map((item) => {
+          const idx = slideIndex++;
+          return (
+            <article
+              key={item.id}
+              data-slide={idx}
+              className={`${styles.slide} ${styles.slideFeature} ${active === idx ? styles.slideActive : ''}`}>
+              <div className={styles.slideContent}>
+                <span className={styles.step}>{item.step}</span>
+                <div className={`${styles.iconStage} ${styles[`iconStage_${item.id}`]}`}>
+                  <span className={styles.iconGlow} aria-hidden />
+                  <span className={styles.iconBox}>
+                    <OnboardingIcon id={item.id} />
+                  </span>
+                </div>
+                <p className={styles.highlight}>{item.highlight}</p>
+                <h2 className={styles.slideTitle}>{item.title}</h2>
+                <p className={styles.slideDesc}>{item.desc}</p>
+              </div>
+            </article>
+          );
+        })}
+
+        {HIGHLIGHT_SLIDES.map((item) => {
+          const idx = slideIndex++;
+          return (
+            <article
+              key={item.id}
+              data-slide={idx}
+              className={`${styles.slide} ${styles.slideHighlight} ${active === idx ? styles.slideActive : ''}`}>
+              <div className={styles.slideContent}>
+                <div className={`${styles.iconStage} ${styles[`iconStage_${item.id}`]}`}>
+                  <span className={styles.iconGlow} aria-hidden />
+                  <span className={styles.iconBox}>
+                    <OnboardingIcon id={item.id} />
+                  </span>
+                </div>
+                <p className={styles.highlight}>{item.sub}</p>
+                <h2 className={styles.slideTitle}>{item.title}</h2>
+                <p className={styles.slideDesc}>{item.desc}</p>
+              </div>
+            </article>
+          );
+        })}
+      </section>
     </main>
   );
 }
