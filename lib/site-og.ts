@@ -26,7 +26,7 @@ export function homeOgImages(locale: HomeLocale) {
   const alt = locale === 'en' ? 'Ginit' : '지닛';
   return [
     {
-      url: toAbsoluteSiteUrl(`/api/home-og?lang=${lang}`),
+      url: toAbsoluteSiteUrl(`/api/home-og/${lang}`),
       width: 1200,
       height: 630,
       alt,

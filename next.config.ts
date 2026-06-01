@@ -1,4 +1,9 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import type { NextConfig } from 'next';
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const securityHeaders = [
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
@@ -25,6 +30,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  /** monorepo/상위 lockfile 때문에 API 라우트가 배포에서 빠지는 것 방지 */
+  outputFileTracingRoot: projectRoot,
   async headers() {
     return [
       {
