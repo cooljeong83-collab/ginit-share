@@ -275,30 +275,6 @@
   vertical-align: middle;
 }
 
-.videoLink {
-  display: inline-block;
-  margin-top: 12px;
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: var(--muted);
-  text-decoration: none;
-  opacity: 0;
-  transform: translateY(6px);
-  transition:
-    color 0.2s ease,
-    opacity 0.5s ease 0.35s,
-    transform 0.5s ease 0.35s;
-}
-
-.videoBlock.inView .videoLink {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.videoLink:hover {
-  color: var(--ink);
-}
-
 /* —— CTA —— */
 .ctaBlock {
   display: flex;
@@ -465,12 +441,6 @@
     opacity: 1;
     transform: none;
     animation: none;
-  }
-
-  .videoLink {
-    opacity: 1;
-    transform: none;
-    transition: none;
   }
 
   .btnPrimary:hover,

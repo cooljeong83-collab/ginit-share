@@ -191,13 +191,6 @@ export default function HomeLanding() {
               referrerPolicy="strict-origin-when-cross-origin"
             />
           </div>
-          <a
-            className={styles.videoLink}
-            href={`https://www.youtube.com/watch?v=${YOUTUBE_VIDEO_ID}`}
-            target="_blank"
-            rel="noopener noreferrer">
-            YouTube에서 보기
-          </a>
         </section>
 
         <section
