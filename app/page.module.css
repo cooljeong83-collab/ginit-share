@@ -153,6 +153,19 @@
   vertical-align: middle;
 }
 
+.videoExternal {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 750;
+  color: #6d28d9;
+  text-decoration: none;
+}
+
+.videoExternal:hover {
+  text-decoration: underline;
+}
+
 .features {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

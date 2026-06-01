@@ -40,7 +40,7 @@ function PlayStoreIcon() {
 }
 
 export default function HomePage() {
-  const youtubeEmbedSrc = `https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?rel=0&modestbranding=1`;
+  const youtubeEmbedSrc = `https://www.youtube-nocookie.com/embed/${YOUTUBE_VIDEO_ID}?rel=0&modestbranding=1`;
 
   return (
     <main className={styles.home}>
@@ -81,8 +81,16 @@ export default function HomePage() {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
             />
           </div>
+          <a
+            className={styles.videoExternal}
+            href={`https://www.youtube.com/watch?v=${YOUTUBE_VIDEO_ID}`}
+            target="_blank"
+            rel="noopener noreferrer">
+            영상이 재생되지 않으면 YouTube에서 보기
+          </a>
         </section>
 
         <ul className={styles.features}>
