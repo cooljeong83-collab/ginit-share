@@ -20,16 +20,43 @@ export function ginitLogoOgImages(alt = '지닛') {
   return [{ url, width: 512, height: 512, alt, type: 'image/png' as const }];
 }
 
+function homeOgLangSegment(locale: HomeLocale): string {
+  if (locale === 'zh-TW') return 'zh-tw';
+  return locale;
+}
+
+function homeOgBrandAlt(locale: HomeLocale): string {
+  return locale === 'ko' ? '지닛' : 'Ginit';
+}
+
+const HOME_OG_LOCALE: Record<HomeLocale, string> = {
+  ko: 'ko_KR',
+  en: 'en_US',
+  ja: 'ja_JP',
+  zh: 'zh_CN',
+  'zh-TW': 'zh_TW',
+  vi: 'vi_VN',
+  la: 'la',
+};
+
+const HOME_OG_SITE_NAME: Record<HomeLocale, string> = {
+  ko: '지닛',
+  en: 'Ginit',
+  ja: 'Ginit',
+  zh: 'Ginit',
+  'zh-TW': 'Ginit',
+  vi: 'Ginit',
+  la: 'Ginit',
+};
+
 /** 홈 링크 미리보기 — 1200×630 (opengraph-image.tsx 는 query 미지원 → API 사용) */
 export function homeOgImages(locale: HomeLocale) {
-  const lang = locale === 'en' ? 'en' : 'ko';
-  const alt = locale === 'en' ? 'Ginit' : '지닛';
   return [
     {
-      url: toAbsoluteSiteUrl(`/api/home-og/${lang}`),
+      url: toAbsoluteSiteUrl(`/api/home-og/${homeOgLangSegment(locale)}`),
       width: 1200,
       height: 630,
-      alt,
+      alt: homeOgBrandAlt(locale),
       type: 'image/png' as const,
     },
   ];
@@ -55,8 +82,8 @@ export function buildGinitShareMetadata({
 }: SiteOgPartial): Metadata {
   const ogImages = images ?? ginitLogoOgImages();
   const twitterImages = ogImages.map((img) => img.url);
-  const ogLocale = locale === 'en' ? 'en_US' : 'ko_KR';
-  const siteName = locale === 'en' ? 'Ginit' : '지닛';
+  const ogLocale = locale ? HOME_OG_LOCALE[locale] : 'ko_KR';
+  const siteName = locale ? HOME_OG_SITE_NAME[locale] : '지닛';
 
   return {
     title,

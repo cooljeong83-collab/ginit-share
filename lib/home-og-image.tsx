@@ -10,11 +10,18 @@ function loadLogoDataUrl(): string {
   return `data:image/png;base64,${buf.toString('base64')}`;
 }
 
+const HOME_OG_LABELS: Record<HomeLocale, { brand: string; tagline: string }> = {
+  ko: { brand: '지닛', tagline: '올인원 모임 조율' },
+  en: { brand: 'Ginit', tagline: 'All-in-one for meetups' },
+  ja: { brand: 'Ginit', tagline: 'オフ会のオールインワン' },
+  zh: { brand: 'Ginit', tagline: '聚会一站式' },
+  'zh-TW': { brand: 'Ginit', tagline: '聚會一站式' },
+  vi: { brand: 'Ginit', tagline: 'Buổi gặp all-in-one' },
+  la: { brand: 'Ginit', tagline: 'Omnia pro conventibus' },
+};
+
 function labels(locale: HomeLocale) {
-  if (locale === 'en') {
-    return { brand: 'Ginit', tagline: 'All-in-one for meetups' };
-  }
-  return { brand: '지닛', tagline: '올인원 모임 조율' };
+  return HOME_OG_LABELS[locale];
 }
 
 /** next/og ImageResponse용 마크업 */

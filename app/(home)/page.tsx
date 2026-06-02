@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { Suspense } from 'react';
 
 import HomeLanding from './HomeLanding';
-import { getHomeContent, resolveHomeLocaleForRequest } from '@/lib/home-i18n';
+import { getHomeContent, homeCanonicalPath, resolveHomeLocaleForRequest } from '@/lib/home-i18n';
 import { buildGinitShareMetadata, homeOgImages } from '@/lib/site-og';
 import { resolveMetadataBase, toAbsoluteSiteUrl } from '@/lib/site-origin';
 
@@ -22,7 +22,7 @@ export async function generateMetadata({ searchParams }: HomePageProps): Promise
   const locale = resolveHomeLocaleForRequest(langFromSearchParams(sp.lang), h.get('accept-language'));
   const { metaTitle, metaDescription } = getHomeContent(locale);
 
-  const homeUrl = locale === 'en' ? toAbsoluteSiteUrl('/?lang=en') : toAbsoluteSiteUrl('/');
+  const homeUrl = toAbsoluteSiteUrl(homeCanonicalPath(locale));
 
   return {
     metadataBase: resolveMetadataBase(),
