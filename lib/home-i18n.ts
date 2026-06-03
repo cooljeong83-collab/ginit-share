@@ -55,6 +55,9 @@ export type HomeContent = {
 const YOUTUBE_KO = 'k4RHJp1sqRc';
 const YOUTUBE_EN = 'VC2Yh9aTivY';
 const YOUTUBE_JA = 'MJyJAklCIMg';
+const YOUTUBE_ZH = 'zwUDhi71O-8';
+const YOUTUBE_ZH_TW = 'Wh72WxMDt8c';
+const YOUTUBE_LA = '7o7QUYBq6SQ';
 
 export function youtubeThumbnailUrl(videoId: string): string {
   return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
@@ -339,7 +342,7 @@ const JA: HomeContent = {
 const ZH: HomeContent = {
   locale: 'zh',
   htmlLang: 'zh-Hans',
-  youtubeVideoId: YOUTUBE_EN,
+  youtubeVideoId: YOUTUBE_ZH,
   brand: 'Ginit',
   headlineMain: '在韩国结识新朋友',
   headlineAccent: '',
@@ -431,7 +434,7 @@ const ZH: HomeContent = {
 const ZH_TW: HomeContent = {
   locale: 'zh-TW',
   htmlLang: 'zh-Hant',
-  youtubeVideoId: YOUTUBE_EN,
+  youtubeVideoId: YOUTUBE_ZH_TW,
   brand: 'Ginit',
   headlineMain: '在韓國認識新朋友',
   headlineAccent: '',
@@ -615,7 +618,7 @@ const VI: HomeContent = {
 const LA: HomeContent = {
   locale: 'la',
   htmlLang: 'la',
-  youtubeVideoId: YOUTUBE_EN,
+  youtubeVideoId: YOUTUBE_LA,
   brand: 'Ginit',
   headlineMain: 'Amicos in Corea inveni',
   headlineAccent: '',
