@@ -8,6 +8,7 @@ import { GINIT_PLAY_STORE_URL } from '@/lib/ginit-app-open';
 import { youtubeThumbnailUrl } from '@/lib/home-i18n';
 import { useHomeLocale } from '@/lib/use-home-locale';
 
+import HomeLanguageSelect from './HomeLanguageSelect';
 import { OnboardingIcon } from './OnboardingIcons';
 import styles from './page.module.css';
 
@@ -123,6 +124,8 @@ export default function HomeLanding() {
         <span className={styles.orbB} />
         <span className={styles.gridFade} />
       </div>
+
+      <HomeLanguageSelect />
 
       <nav className={styles.dots} aria-label={c.dotsAria}>
         {Array.from({ length: slideCount }, (_, i) => (

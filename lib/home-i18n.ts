@@ -841,3 +841,27 @@ export function homeCanonicalPath(locale: HomeLocale): string {
   if (locale === 'zh-TW') return '/?lang=zh-tw';
   return `/?lang=${locale}`;
 }
+
+/** 앱 언어 선택과 동일한 순서·네이티브 표기 */
+export const HOME_LANGUAGE_OPTIONS: ReadonlyArray<{ locale: HomeLocale; label: string }> = [
+  { locale: 'ko', label: '한국어' },
+  { locale: 'en', label: 'English' },
+  { locale: 'ja', label: '日本語' },
+  { locale: 'zh', label: '简体中文' },
+  { locale: 'zh-TW', label: '繁體中文' },
+  { locale: 'vi', label: 'Tiếng Việt' },
+  { locale: 'la', label: 'Español' },
+];
+
+export function homeLanguageSelectAria(locale: HomeLocale): string {
+  const labels: Record<HomeLocale, string> = {
+    ko: '언어 선택',
+    en: 'Choose language',
+    ja: '言語を選択',
+    zh: '选择语言',
+    'zh-TW': '選擇語言',
+    vi: 'Chọn ngôn ngữ',
+    la: 'Seleccionar idioma',
+  };
+  return labels[locale];
+}
