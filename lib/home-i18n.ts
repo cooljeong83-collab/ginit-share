@@ -54,6 +54,7 @@ export type HomeContent = {
 
 const YOUTUBE_KO = 'k4RHJp1sqRc';
 const YOUTUBE_EN = 'VC2Yh9aTivY';
+const YOUTUBE_JA = 'MJyJAklCIMg';
 
 export function youtubeThumbnailUrl(videoId: string): string {
   return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
@@ -246,7 +247,7 @@ const EN: HomeContent = {
 const JA: HomeContent = {
   locale: 'ja',
   htmlLang: 'ja',
-  youtubeVideoId: YOUTUBE_EN,
+  youtubeVideoId: YOUTUBE_JA,
   brand: 'Ginit',
   headlineMain: '韓国で友だちと出会う',
   headlineAccent: '',
