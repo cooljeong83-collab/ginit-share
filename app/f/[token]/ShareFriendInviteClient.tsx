@@ -24,16 +24,14 @@ function FriendInviteBrandBar({
     <header
       className={`${styles.brandBar} ${onIntro ? styles.brandBarOnIntro : styles.brandBarOnDark}`}
       aria-label={m.kicker}>
-      <span className={styles.brandLogoWrap} aria-hidden>
-        <Image
-          src="/ginit-logo.png"
-          alt=""
-          width={20}
-          height={20}
-          className={styles.brandLogo}
-          priority
-        />
-      </span>
+      <Image
+        src="/ginit-logo.png"
+        alt=""
+        width={22}
+        height={22}
+        className={styles.brandLogo}
+        priority
+      />
       <p className={styles.brandText}>
         <span className={styles.brandName}>{m.headerBrand}</span>
         <span className={styles.brandSep}> - </span>
@@ -171,7 +169,7 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
       <section ref={deckRef} className={homeStyles.deck} aria-label={home.onboardingAria}>
         <article
           data-slide={slideIndex++}
-          className={`${homeStyles.slide} ${homeStyles.slideIntro} ${active === 0 ? homeStyles.slideActive : ''}`}
+          className={`${homeStyles.slide} ${homeStyles.slideIntro} ${styles.introSlide} ${active === 0 ? homeStyles.slideActive : ''}`}
           aria-label={m.inviteTitle(nickname)}>
           <div className={`${homeStyles.introInner} ${styles.introInner}`}>
             <section className={styles.inviteCard} aria-label={nickname}>
