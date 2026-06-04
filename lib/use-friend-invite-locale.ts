@@ -6,21 +6,21 @@ import {
   getFriendInviteMessages,
   persistFriendInviteLocale,
   resolveFriendInviteLocale,
+  type FriendInviteLocale,
   type FriendInviteMessages,
 } from '@/lib/friend-invite-i18n';
-import type { ShareLocale } from '@/lib/share-i18n';
 
 export function useFriendInviteLocale(): {
-  locale: ShareLocale;
+  locale: FriendInviteLocale;
   m: FriendInviteMessages;
-  setLocale: (locale: ShareLocale) => void;
+  setLocale: (locale: FriendInviteLocale) => void;
 } {
-  const [locale, setLocaleState] = useState<ShareLocale>(() =>
+  const [locale, setLocaleState] = useState<FriendInviteLocale>(() =>
     typeof window !== 'undefined' ? resolveFriendInviteLocale() : 'ko',
   );
   const m = useMemo(() => getFriendInviteMessages(locale), [locale]);
 
-  const setLocale = useCallback((next: ShareLocale) => {
+  const setLocale = useCallback((next: FriendInviteLocale) => {
     setLocaleState(next);
     persistFriendInviteLocale(next);
     document.documentElement.lang = getFriendInviteMessages(next).htmlLang;

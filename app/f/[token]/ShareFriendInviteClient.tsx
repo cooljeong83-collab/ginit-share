@@ -5,8 +5,8 @@ import homeStyles from '@/app/(home)/page.module.css';
 import GinitFriendInviteOpenLink from '@/app/GinitFriendInviteOpenLink';
 import { apiFriendInviteGuestGet } from '@/lib/friend-invite-api-client';
 import type { FriendInviteMessages } from '@/lib/friend-invite-i18n';
-import { getHomeContent, youtubeThumbnailUrl, type HomeLocale } from '@/lib/home-i18n';
-import type { ShareLocale } from '@/lib/share-i18n';
+import type { FriendInviteLocale } from '@/lib/friend-invite-i18n';
+import { getHomeContent, youtubeThumbnailUrl } from '@/lib/home-i18n';
 import { useScrollDeckLoop, useScrollSlides } from '@/lib/use-home-scroll-deck';
 import { useFriendInviteLocale } from '@/lib/use-friend-invite-locale';
 import Image from 'next/image';
@@ -22,8 +22,8 @@ function FriendInviteTopChrome({
   onIntro,
 }: {
   m: FriendInviteMessages;
-  locale: ShareLocale;
-  setLocale: (locale: ShareLocale) => void;
+  locale: FriendInviteLocale;
+  setLocale: (locale: FriendInviteLocale) => void;
   onIntro: boolean;
 }) {
   return (
@@ -87,7 +87,7 @@ type ShareFriendInviteClientProps = {
 
 export default function ShareFriendInviteClient({ token }: ShareFriendInviteClientProps) {
   const { locale, m, setLocale } = useFriendInviteLocale();
-  const home = useMemo(() => getHomeContent(locale as HomeLocale), [locale]);
+  const home = useMemo(() => getHomeContent(locale), [locale]);
   const deckRef = useRef<HTMLElement>(null);
   const [ready, setReady] = useState(false);
   const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading');

@@ -1,16 +1,30 @@
-/** 친구 초대 `/f/{token}` 랜딩 — 브라우저 언어 기준 */
+/** 친구 초대 `/f/{token}` 랜딩 — ko / en / ja / zh / zh-TW / vi / la */
 
 import {
-  isShareLocale,
-  resolveShareLocale,
-  type ShareLocale,
-} from '@/lib/share-i18n';
+  HOME_LANGUAGE_OPTIONS,
+  resolveHomeLocale,
+  type HomeLocale,
+} from '@/lib/home-i18n';
+
+export type FriendInviteLocale = HomeLocale;
 
 export const FRIEND_INVITE_LOCALE_STORAGE_KEY = 'ginit-friend-invite-locale';
 
+/** 앱·홈과 동일한 언어 목록 */
+export const FRIEND_INVITE_LANGUAGE_OPTIONS = HOME_LANGUAGE_OPTIONS;
+
+const FRIEND_INVITE_LOCALES: readonly FriendInviteLocale[] = [
+  'ko',
+  'en',
+  'ja',
+  'zh',
+  'zh-TW',
+  'vi',
+  'la',
+];
+
 export type FriendInviteMessages = {
   htmlLang: string;
-  /** 상단 좌측 브랜드 바 — `{headerBrand} - {headerSubtitle}` */
   headerBrand: string;
   headerSubtitle: string;
   kicker: string;
@@ -115,30 +129,102 @@ const ZH: FriendInviteMessages = {
   appAboutTitle: '关于 Ginit',
 };
 
-const BY_LOCALE: Record<ShareLocale, FriendInviteMessages> = {
+const ZH_TW: FriendInviteMessages = {
+  htmlLang: 'zh-Hant',
+  headerBrand: 'Ginit',
+  headerSubtitle: '好友邀請',
+  kicker: 'Ginit - 好友邀請',
+  loading: '正在載入邀請資訊…',
+  errorTitle: '無法開啟連結',
+  errorHint: '好友邀請連結可能已過期或無效。請在 App 中取得新連結。',
+  unknownError: '發生未知錯誤。',
+  loadTimeout: '回應逾時，請稍後再試。',
+  invalidLink: '無效的好友邀請連結。',
+  inviteTitle: (nickname) => `${nickname} 向你傳送了好友邀請`,
+  inviteBody: '點擊「接受好友」將開啟 Ginit App，並自動加為好友。',
+  acceptCta: '接受好友',
+  openInApp: '在 Ginit App 中開啟',
+  footerAppHint: '若尚未安裝 App，請從 Play 商店安裝 Ginit 後再次開啟此連結。',
+  gDnaLabel: 'gDna',
+  appAboutTitle: '關於 Ginit',
+};
+
+const VI: FriendInviteMessages = {
+  htmlLang: 'vi',
+  headerBrand: 'Ginit',
+  headerSubtitle: 'Lời mời kết bạn',
+  kicker: 'Ginit - Lời mời kết bạn',
+  loading: 'Đang tải thông tin lời mời…',
+  errorTitle: 'Không thể mở liên kết',
+  errorHint: 'Liên kết lời mời kết bạn có thể đã hết hạn hoặc không hợp lệ. Hãy nhận liên kết mới trong app.',
+  unknownError: 'Đã xảy ra lỗi không xác định.',
+  loadTimeout: 'Phản hồi quá lâu. Vui lòng thử lại.',
+  invalidLink: 'Liên kết lời mời kết bạn không hợp lệ.',
+  inviteTitle: (nickname) => `${nickname} đã gửi cho bạn lời mời kết bạn`,
+  inviteBody:
+    'Nhấn Chấp nhận kết bạn để mở app Ginit và tự động thêm họ làm bạn bè.',
+  acceptCta: 'Chấp nhận kết bạn',
+  openInApp: 'Mở trong app Ginit',
+  footerAppHint:
+    'Nếu chưa cài app, hãy cài Ginit từ Play Store rồi mở lại liên kết này.',
+  gDnaLabel: 'gDna',
+  appAboutTitle: 'Giới thiệu Ginit',
+};
+
+const LA: FriendInviteMessages = {
+  htmlLang: 'la',
+  headerBrand: 'Ginit',
+  headerSubtitle: 'Invitatio amicitiae',
+  kicker: 'Ginit - Invitatio amicitiae',
+  loading: 'Invitatio oneratur…',
+  errorTitle: 'Nexum aperire non potest',
+  errorHint:
+    'Nexum invitationis amicitiae fortasse expiravit aut invalidum est. Novum nexum in applicatione pete.',
+  unknownError: 'Error incognitus accidit.',
+  loadTimeout: 'Responsum tardat. Quaeso iterum conare.',
+  invalidLink: 'Nexum invitationis amicitiae invalidum.',
+  inviteTitle: (nickname) => `${nickname} petitionem amicitiae misit`,
+  inviteBody:
+    'Preme Accipe amicitiam ut applicatio Ginit aperiatur et amicus automatice addatur.',
+  acceptCta: 'Accipe amicitiam',
+  openInApp: 'Aperi in applicatione Ginit',
+  footerAppHint:
+    'Si applicatio non installata est, Ginit e Play Store installa, deinde hunc nexum iterum aperi.',
+  gDnaLabel: 'gDna',
+  appAboutTitle: 'De Ginit',
+};
+
+const BY_LOCALE: Record<FriendInviteLocale, FriendInviteMessages> = {
   ko: KO,
   en: EN,
   ja: JA,
   zh: ZH,
+  'zh-TW': ZH_TW,
+  vi: VI,
+  la: LA,
 };
 
-export function getFriendInviteMessages(locale: ShareLocale): FriendInviteMessages {
+export function isFriendInviteLocale(value: string): value is FriendInviteLocale {
+  return (FRIEND_INVITE_LOCALES as readonly string[]).includes(value);
+}
+
+export function getFriendInviteMessages(locale: FriendInviteLocale): FriendInviteMessages {
   return BY_LOCALE[locale] ?? KO;
 }
 
-export function resolveFriendInviteLocale(): ShareLocale {
+export function resolveFriendInviteLocale(): FriendInviteLocale {
   if (typeof window !== 'undefined') {
     try {
       const stored = localStorage.getItem(FRIEND_INVITE_LOCALE_STORAGE_KEY);
-      if (stored && isShareLocale(stored)) return stored;
+      if (stored && isFriendInviteLocale(stored)) return stored;
     } catch {
       /* ignore */
     }
   }
-  return resolveShareLocale();
+  return resolveHomeLocale();
 }
 
-export function persistFriendInviteLocale(locale: ShareLocale): void {
+export function persistFriendInviteLocale(locale: FriendInviteLocale): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(FRIEND_INVITE_LOCALE_STORAGE_KEY, locale);

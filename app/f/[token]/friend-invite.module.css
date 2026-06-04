@@ -22,7 +22,7 @@
 .langSelect {
   appearance: none;
   margin: 0;
-  min-width: 88px;
+  min-width: 108px;
   padding: 7px 30px 7px 12px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
@@ -124,7 +124,7 @@
 
 .introInner {
   gap: clamp(14px, 3.5vw, 22px);
-  padding-top: 24px;
+  padding-top: 32px;
 }
 
 .introVideoFrame {
@@ -148,11 +148,7 @@
 }
 
 .inviteCard {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 18px;
-  padding: 20px 18px;
-  box-shadow: 0 12px 40px -28px rgba(109, 40, 217, 0.28);
+  padding: 20px 0;
 }
 
 .profile {

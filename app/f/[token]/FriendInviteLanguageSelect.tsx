@@ -1,17 +1,14 @@
 'use client';
 
-import {
-  SHARE_LANGUAGE_OPTIONS,
-  shareLanguageSelectAria,
-  type ShareLocale,
-} from '@/lib/share-i18n';
+import { FRIEND_INVITE_LANGUAGE_OPTIONS, type FriendInviteLocale } from '@/lib/friend-invite-i18n';
+import { homeLanguageSelectAria } from '@/lib/home-i18n';
 import type { ChangeEvent } from 'react';
 
 import styles from './friend-invite.module.css';
 
 type FriendInviteLanguageSelectProps = {
-  locale: ShareLocale;
-  onLocaleChange: (locale: ShareLocale) => void;
+  locale: FriendInviteLocale;
+  onLocaleChange: (locale: FriendInviteLocale) => void;
   onIntro: boolean;
 };
 
@@ -21,7 +18,10 @@ export default function FriendInviteLanguageSelect({
   onIntro,
 }: FriendInviteLanguageSelectProps) {
   const onChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    onLocaleChange(e.target.value as ShareLocale);
+    const next = e.target.value;
+    if (FRIEND_INVITE_LANGUAGE_OPTIONS.some((o) => o.locale === next)) {
+      onLocaleChange(next as FriendInviteLocale);
+    }
   };
 
   return (
@@ -30,9 +30,9 @@ export default function FriendInviteLanguageSelect({
       <select
         className={styles.langSelect}
         value={locale}
-        aria-label={shareLanguageSelectAria(locale)}
+        aria-label={homeLanguageSelectAria(locale)}
         onChange={onChange}>
-        {SHARE_LANGUAGE_OPTIONS.map(({ locale: optLocale, label }) => (
+        {FRIEND_INVITE_LANGUAGE_OPTIONS.map(({ locale: optLocale, label }) => (
           <option key={optLocale} value={optLocale}>
             {label}
           </option>
