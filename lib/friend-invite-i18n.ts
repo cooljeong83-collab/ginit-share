@@ -1,6 +1,12 @@
 /** 친구 초대 `/f/{token}` 랜딩 — 브라우저 언어 기준 */
 
-import { resolveShareLocale, type ShareLocale } from '@/lib/share-i18n';
+import {
+  isShareLocale,
+  resolveShareLocale,
+  type ShareLocale,
+} from '@/lib/share-i18n';
+
+export const FRIEND_INVITE_LOCALE_STORAGE_KEY = 'ginit-friend-invite-locale';
 
 export type FriendInviteMessages = {
   htmlLang: string;
@@ -121,5 +127,22 @@ export function getFriendInviteMessages(locale: ShareLocale): FriendInviteMessag
 }
 
 export function resolveFriendInviteLocale(): ShareLocale {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem(FRIEND_INVITE_LOCALE_STORAGE_KEY);
+      if (stored && isShareLocale(stored)) return stored;
+    } catch {
+      /* ignore */
+    }
+  }
   return resolveShareLocale();
+}
+
+export function persistFriendInviteLocale(locale: ShareLocale): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(FRIEND_INVITE_LOCALE_STORAGE_KEY, locale);
+  } catch {
+    /* ignore */
+  }
 }

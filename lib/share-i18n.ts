@@ -661,6 +661,27 @@ function baseLang(tag: string): string | null {
 }
 
 /** navigator.languages / navigator.language 순으로 시스템 언어 매칭 */
+export const SHARE_LANGUAGE_OPTIONS: ReadonlyArray<{ locale: ShareLocale; label: string }> = [
+  { locale: 'ko', label: '한국어' },
+  { locale: 'en', label: 'English' },
+  { locale: 'ja', label: '日本語' },
+  { locale: 'zh', label: '中文' },
+];
+
+export function shareLanguageSelectAria(locale: ShareLocale): string {
+  const labels: Record<ShareLocale, string> = {
+    ko: '언어 선택',
+    en: 'Choose language',
+    ja: '言語を選択',
+    zh: '选择语言',
+  };
+  return labels[locale];
+}
+
+export function isShareLocale(value: string): value is ShareLocale {
+  return value === 'ko' || value === 'en' || value === 'ja' || value === 'zh';
+}
+
 export function resolveShareLocale(): ShareLocale {
   if (typeof navigator === 'undefined') return 'ko';
   const tags = navigator.languages?.length ? [...navigator.languages] : [navigator.language];

@@ -4,40 +4,53 @@ import { OnboardingIcon } from '@/app/(home)/OnboardingIcons';
 import homeStyles from '@/app/(home)/page.module.css';
 import GinitFriendInviteOpenLink from '@/app/GinitFriendInviteOpenLink';
 import { apiFriendInviteGuestGet } from '@/lib/friend-invite-api-client';
+import type { FriendInviteMessages } from '@/lib/friend-invite-i18n';
 import { getHomeContent, youtubeThumbnailUrl, type HomeLocale } from '@/lib/home-i18n';
+import type { ShareLocale } from '@/lib/share-i18n';
 import { useScrollDeckLoop, useScrollSlides } from '@/lib/use-home-scroll-deck';
 import { useFriendInviteLocale } from '@/lib/use-friend-invite-locale';
-import type { FriendInviteMessages } from '@/lib/friend-invite-i18n';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import FriendInviteLanguageSelect from './FriendInviteLanguageSelect';
 import styles from './friend-invite.module.css';
 
-function FriendInviteBrandBar({
+function FriendInviteTopChrome({
   m,
+  locale,
+  setLocale,
   onIntro,
 }: {
   m: FriendInviteMessages;
+  locale: ShareLocale;
+  setLocale: (locale: ShareLocale) => void;
   onIntro: boolean;
 }) {
   return (
-    <header
-      className={`${styles.brandBar} ${onIntro ? styles.brandBarOnIntro : styles.brandBarOnDark}`}
-      aria-label={m.kicker}>
-      <Image
-        src="/ginit-logo.png"
-        alt=""
-        width={22}
-        height={22}
-        className={styles.brandLogo}
-        priority
+    <>
+      <header
+        className={`${styles.brandBar} ${onIntro ? styles.brandBarOnIntro : styles.brandBarOnDark}`}
+        aria-label={m.kicker}>
+        <Image
+          src="/ginit-logo.png"
+          alt=""
+          width={22}
+          height={22}
+          className={styles.brandLogo}
+          priority
+        />
+        <p className={styles.brandText}>
+          <span className={styles.brandName}>{m.headerBrand}</span>
+          <span className={styles.brandSep}> - </span>
+          <span className={styles.brandSubtitle}>{m.headerSubtitle}</span>
+        </p>
+      </header>
+      <FriendInviteLanguageSelect
+        locale={locale}
+        onLocaleChange={setLocale}
+        onIntro={onIntro}
       />
-      <p className={styles.brandText}>
-        <span className={styles.brandName}>{m.headerBrand}</span>
-        <span className={styles.brandSep}> - </span>
-        <span className={styles.brandSubtitle}>{m.headerSubtitle}</span>
-      </p>
-    </header>
+    </>
   );
 }
 
@@ -73,7 +86,7 @@ type ShareFriendInviteClientProps = {
 };
 
 export default function ShareFriendInviteClient({ token }: ShareFriendInviteClientProps) {
-  const { locale, m } = useFriendInviteLocale();
+  const { locale, m, setLocale } = useFriendInviteLocale();
   const home = useMemo(() => getHomeContent(locale as HomeLocale), [locale]);
   const deckRef = useRef<HTMLElement>(null);
   const [ready, setReady] = useState(false);
@@ -126,7 +139,7 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
   if (phase === 'loading') {
     return (
       <main className={styles.statePage}>
-        <FriendInviteBrandBar m={m} onIntro />
+        <FriendInviteTopChrome m={m} locale={locale} setLocale={setLocale} onIntro />
         <p className={styles.stateText}>{m.loading}</p>
       </main>
     );
@@ -135,7 +148,7 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
   if (phase === 'error' || !profile) {
     return (
       <main className={styles.statePage}>
-        <FriendInviteBrandBar m={m} onIntro />
+        <FriendInviteTopChrome m={m} locale={locale} setLocale={setLocale} onIntro />
         <h1 className={styles.stateTitle}>{m.errorTitle}</h1>
         <p className={styles.alert} role="alert">
           {err ?? m.unknownError}
@@ -152,7 +165,12 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
   return (
     <main
       className={`${homeStyles.page} ${ready ? homeStyles.ready : ''} ${active === 0 ? homeStyles.pageOnIntro : ''}`}>
-      <FriendInviteBrandBar m={m} onIntro={active === 0} />
+      <FriendInviteTopChrome
+        m={m}
+        locale={locale}
+        setLocale={setLocale}
+        onIntro={active === 0}
+      />
       <nav className={homeStyles.dots} aria-label={home.dotsAria}>
         {Array.from({ length: slideCount }, (_, i) => (
           <button
