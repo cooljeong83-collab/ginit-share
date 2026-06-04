@@ -35,7 +35,8 @@ const KO: FriendInviteMessages = {
   loadTimeout: '응답이 지연되고 있어요. 잠시 후 다시 시도해 주세요.',
   invalidLink: '유효하지 않은 친구 요청 링크예요.',
   inviteTitle: (nickname) => `${nickname}님이 친구를 요청했어요`,
-  inviteBody: '지닛 앱에서 친구 수락하기를 누르면 친구 목록에 추가돼요.',
+  inviteBody:
+    '친구 수락하기 버튼을 누르면 지닛 앱이 실행되고, 친구로 자동 등록됩니다.',
   acceptCta: '친구 수락하기',
   openInApp: '지닛 앱에서 열기',
   footerAppHint:
@@ -56,7 +57,8 @@ const EN: FriendInviteMessages = {
   loadTimeout: 'Taking too long. Please try again.',
   invalidLink: 'Invalid friend request link.',
   inviteTitle: (nickname) => `${nickname} sent you a friend request`,
-  inviteBody: 'Tap Accept in the Ginit app to add them to your friends list.',
+  inviteBody:
+    'Tap Accept friend to open the Ginit app and add them as a friend automatically.',
   acceptCta: 'Accept friend',
   openInApp: 'Open in Ginit app',
   footerAppHint:
@@ -77,7 +79,8 @@ const JA: FriendInviteMessages = {
   loadTimeout: '応答に時間がかかっています。しばらくしてから再度お試しください。',
   invalidLink: '無効な友達リクエストリンクです。',
   inviteTitle: (nickname) => `${nickname}さんから友達リクエストが届きました`,
-  inviteBody: 'Ginitアプリで「友達を承認」をタップすると友達リストに追加されます。',
+  inviteBody:
+    '「友達を承認」をタップするとGinitアプリが起動し、友達として自動登録されます。',
   acceptCta: '友達を承認',
   openInApp: 'Ginitアプリで開く',
   footerAppHint:
@@ -98,7 +101,7 @@ const ZH: FriendInviteMessages = {
   loadTimeout: '响应超时，请稍后重试。',
   invalidLink: '无效的好友请求链接。',
   inviteTitle: (nickname) => `${nickname} 向你发送了好友请求`,
-  inviteBody: '在 Ginit 应用中点击接受好友，即可加入好友列表。',
+  inviteBody: '点击「接受好友」将打开 Ginit 应用，并自动添加为好友。',
   acceptCta: '接受好友',
   openInApp: '在 Ginit 应用中打开',
   footerAppHint: '如未安装应用，请从 Play 商店安装 Ginit 后再次打开此链接。',
