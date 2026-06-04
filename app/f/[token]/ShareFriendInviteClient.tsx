@@ -7,9 +7,41 @@ import { apiFriendInviteGuestGet } from '@/lib/friend-invite-api-client';
 import { getHomeContent, youtubeThumbnailUrl, type HomeLocale } from '@/lib/home-i18n';
 import { useScrollDeckLoop, useScrollSlides } from '@/lib/use-home-scroll-deck';
 import { useFriendInviteLocale } from '@/lib/use-friend-invite-locale';
+import type { FriendInviteMessages } from '@/lib/friend-invite-i18n';
+import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import styles from './friend-invite.module.css';
+
+function FriendInviteBrandBar({
+  m,
+  onIntro,
+}: {
+  m: FriendInviteMessages;
+  onIntro: boolean;
+}) {
+  return (
+    <header
+      className={`${styles.brandBar} ${onIntro ? styles.brandBarOnIntro : styles.brandBarOnDark}`}
+      aria-label={m.kicker}>
+      <span className={styles.brandLogoWrap} aria-hidden>
+        <Image
+          src="/ginit-logo.png"
+          alt=""
+          width={20}
+          height={20}
+          className={styles.brandLogo}
+          priority
+        />
+      </span>
+      <p className={styles.brandText}>
+        <span className={styles.brandName}>{m.headerBrand}</span>
+        <span className={styles.brandSep}> - </span>
+        <span className={styles.brandSubtitle}>{m.headerSubtitle}</span>
+      </p>
+    </header>
+  );
+}
 
 function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -96,6 +128,7 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
   if (phase === 'loading') {
     return (
       <main className={styles.statePage}>
+        <FriendInviteBrandBar m={m} onIntro />
         <p className={styles.stateText}>{m.loading}</p>
       </main>
     );
@@ -104,6 +137,7 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
   if (phase === 'error' || !profile) {
     return (
       <main className={styles.statePage}>
+        <FriendInviteBrandBar m={m} onIntro />
         <h1 className={styles.stateTitle}>{m.errorTitle}</h1>
         <p className={styles.alert} role="alert">
           {err ?? m.unknownError}
@@ -120,6 +154,7 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
   return (
     <main
       className={`${homeStyles.page} ${ready ? homeStyles.ready : ''} ${active === 0 ? homeStyles.pageOnIntro : ''}`}>
+      <FriendInviteBrandBar m={m} onIntro={active === 0} />
       <nav className={homeStyles.dots} aria-label={home.dotsAria}>
         {Array.from({ length: slideCount }, (_, i) => (
           <button

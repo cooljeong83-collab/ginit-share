@@ -4,6 +4,9 @@ import { resolveShareLocale, type ShareLocale } from '@/lib/share-i18n';
 
 export type FriendInviteMessages = {
   htmlLang: string;
+  /** 상단 좌측 브랜드 바 — `{headerBrand} - {headerSubtitle}` */
+  headerBrand: string;
+  headerSubtitle: string;
   kicker: string;
   loading: string;
   errorTitle: string;
@@ -22,7 +25,9 @@ export type FriendInviteMessages = {
 
 const KO: FriendInviteMessages = {
   htmlLang: 'ko',
-  kicker: '지닛 · 친구 요청',
+  headerBrand: '지닛',
+  headerSubtitle: '친구초대',
+  kicker: '지닛 - 친구초대',
   loading: '초대 정보를 불러오는 중…',
   errorTitle: '링크를 열 수 없어요',
   errorHint: '친구 요청 링크가 만료되었거나 잘못되었을 수 있어요. 앱에서 새 링크를 받아 보세요.',
@@ -41,7 +46,9 @@ const KO: FriendInviteMessages = {
 
 const EN: FriendInviteMessages = {
   htmlLang: 'en',
-  kicker: 'Ginit · Friend request',
+  headerBrand: 'Ginit',
+  headerSubtitle: 'Friend invite',
+  kicker: 'Ginit - Friend invite',
   loading: 'Loading invite…',
   errorTitle: 'Could not open link',
   errorHint: 'This friend request link may be expired or invalid. Ask for a new link in the app.',
@@ -60,7 +67,9 @@ const EN: FriendInviteMessages = {
 
 const JA: FriendInviteMessages = {
   htmlLang: 'ja',
-  kicker: 'Ginit · 友達リクエスト',
+  headerBrand: 'Ginit',
+  headerSubtitle: '友達招待',
+  kicker: 'Ginit - 友達招待',
   loading: '招待情報を読み込み中…',
   errorTitle: 'リンクを開けません',
   errorHint: '友達リクエストリンクの期限切れまたは無効の可能性があります。アプリで新しいリンクを受け取ってください。',
@@ -79,7 +88,9 @@ const JA: FriendInviteMessages = {
 
 const ZH: FriendInviteMessages = {
   htmlLang: 'zh',
-  kicker: 'Ginit · 好友请求',
+  headerBrand: 'Ginit',
+  headerSubtitle: '好友邀请',
+  kicker: 'Ginit - 好友邀请',
   loading: '正在加载邀请信息…',
   errorTitle: '无法打开链接',
   errorHint: '好友请求链接可能已过期或无效。请在应用中获取新链接。',
