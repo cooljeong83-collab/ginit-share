@@ -53,7 +53,7 @@ export function openGinitApp(meetingId?: string | null, shareToken?: string | nu
 
 export function resolveFriendInviteDeepLink(friendInviteToken: string): string {
   const token = friendInviteToken.trim();
-  return `ginitapp://friends?friendInviteToken=${encodeURIComponent(token)}`;
+  return `ginitapp://friend-invite-accept?friendInviteToken=${encodeURIComponent(token)}`;
 }
 
 export function openGinitAppForFriendInvite(friendInviteToken: string): void {

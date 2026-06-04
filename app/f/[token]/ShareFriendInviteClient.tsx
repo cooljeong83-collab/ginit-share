@@ -2,10 +2,13 @@
 
 import GinitFriendInviteOpenLink from '@/app/GinitFriendInviteOpenLink';
 import { apiFriendInviteGuestGet } from '@/lib/friend-invite-api-client';
+import { getHomeContent, youtubeThumbnailUrl, type HomeLocale } from '@/lib/home-i18n';
 import { useFriendInviteLocale } from '@/lib/use-friend-invite-locale';
-import { useCallback, useEffect, useState } from 'react';
+import Image from 'next/image';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import '../../s/[token]/share.css';
+import styles from './friend-invite.module.css';
 
 function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -39,11 +42,19 @@ type ShareFriendInviteClientProps = {
   token: string;
 };
 
+function PageShell({ children }: { children: React.ReactNode }) {
+  return <main className={styles.page}>{children}</main>;
+}
+
 export default function ShareFriendInviteClient({ token }: ShareFriendInviteClientProps) {
-  const { m } = useFriendInviteLocale();
+  const { locale, m } = useFriendInviteLocale();
+  const home = useMemo(() => getHomeContent(locale as HomeLocale), [locale]);
   const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading');
   const [err, setErr] = useState<string | null>(null);
   const [profile, setProfile] = useState<InviteProfile | null>(null);
+
+  const youtubeEmbedSrc = `https://www.youtube-nocookie.com/embed/${home.youtubeVideoId}?rel=0&modestbranding=1`;
+  const youtubePosterSrc = youtubeThumbnailUrl(home.youtubeVideoId);
 
   const load = useCallback(async () => {
     setPhase('loading');
@@ -77,31 +88,51 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
 
   if (phase === 'loading') {
     return (
-      <main className="gShell">
-        <div className="gCenterEmpty">
-          <div>
-            <p className="gKicker">{m.kicker}</p>
-            <p className="gEmptyText">{m.loading}</p>
+      <PageShell>
+        <div className={styles.centerState}>
+          <div className={styles.centerBlock}>
+            <header className={styles.hero}>
+              <Image
+                src="/ginit-logo.png"
+                alt=""
+                width={72}
+                height={72}
+                className={styles.logo}
+                priority
+              />
+              <p className={styles.kicker}>{m.kicker}</p>
+            </header>
+            <p className={styles.emptyText}>{m.loading}</p>
           </div>
         </div>
-      </main>
+      </PageShell>
     );
   }
 
   if (phase === 'error' || !profile) {
     return (
-      <main className="gShell">
-        <div className="gCenterEmpty">
-          <div>
-            <p className="gKicker">{m.kicker}</p>
-            <h1 className="gEmptyTitle">{m.errorTitle}</h1>
-            <p className="gAlert" role="alert">
+      <PageShell>
+        <div className={styles.centerState}>
+          <div className={styles.centerBlock}>
+            <header className={styles.hero}>
+              <Image
+                src="/ginit-logo.png"
+                alt=""
+                width={72}
+                height={72}
+                className={styles.logo}
+                priority
+              />
+              <p className={styles.kicker}>{m.kicker}</p>
+            </header>
+            <h1 className={styles.emptyTitle}>{m.errorTitle}</h1>
+            <p className={styles.alert} role="alert">
               {err ?? m.unknownError}
             </p>
-            <p className="gEmptyText">{m.errorHint}</p>
+            <p className={styles.emptyText}>{m.errorHint}</p>
           </div>
         </div>
-      </main>
+      </PageShell>
     );
   }
 
@@ -109,36 +140,67 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
   const photoOk = photoUrl.startsWith('https://') || photoUrl.startsWith('http://');
 
   return (
-    <main className="gShell">
-      <header className="gHero">
-        <div className="gHeroBody" style={{ paddingTop: 8 }}>
-          <p className="gKicker">{m.kicker}</p>
-          <h1 className="gTitle">{m.inviteTitle(nickname)}</h1>
-          <p className="gDesc">{m.inviteBody}</p>
-        </div>
-      </header>
+    <PageShell>
+      <div className={styles.inner}>
+        <header className={styles.hero}>
+          <Image
+            src="/ginit-logo.png"
+            alt=""
+            width={72}
+            height={72}
+            className={styles.logo}
+            priority
+          />
+          <p className={styles.kicker}>{m.kicker}</p>
+        </header>
 
-      <section className="gCard" aria-label={nickname}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div
-            className={`gAvatarCircle ${photoOk ? 'gAvatarCirclePhoto' : ''}`}
-            style={{ width: 72, height: 72, flexShrink: 0 }}>
-            {photoOk ? <img src={photoUrl} alt="" /> : initialsFrom(nickname)}
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div className="gTitle" style={{ fontSize: 20, margin: 0 }}>
-              {nickname}
+        <section className={styles.inviteCard} aria-label={nickname}>
+          <div className={styles.profile}>
+            <div
+              className={`${styles.avatar} ${photoOk ? styles.avatarPhoto : ''}`}
+              aria-hidden={photoOk}>
+              {photoOk ? <img src={photoUrl} alt="" /> : initialsFrom(nickname)}
             </div>
+            <h1 className={styles.profileName}>{nickname}</h1>
             {gDna ? (
-              <p className="gDesc" style={{ marginTop: 6 }}>
-                {m.gDnaLabel}: {gDna}
+              <p className={styles.gDna}>
+                <span>{m.gDnaLabel}</span>
+                <span>{gDna}</span>
               </p>
             ) : null}
           </div>
-        </div>
-      </section>
+          <h2 className={styles.inviteTitle}>{m.inviteTitle(nickname)}</h2>
+          <p className={styles.inviteBody}>{m.inviteBody}</p>
+        </section>
 
-      <footer className="gFooter">{m.footerAppHint}</footer>
+        <section className={styles.videoSection} aria-label={home.videoAria}>
+          <div className={styles.videoFrame}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className={styles.videoPoster}
+              src={youtubePosterSrc}
+              alt=""
+              width={1280}
+              height={720}
+            />
+            <iframe
+              className={styles.video}
+              src={youtubeEmbedSrc}
+              title={home.videoTitle}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+          </div>
+        </section>
+
+        <footer className={styles.appFooter}>
+          <h3 className={styles.appAboutTitle}>{m.appAboutTitle}</h3>
+          <p className={styles.appAbout}>{home.metaDescription}</p>
+          <p className={styles.installHint}>{m.footerAppHint}</p>
+        </footer>
+      </div>
 
       <div className="gBottomBar">
         <div className="gBottomInner">
@@ -152,6 +214,6 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
           </GinitFriendInviteOpenLink>
         </div>
       </div>
-    </main>
+    </PageShell>
   );
 }

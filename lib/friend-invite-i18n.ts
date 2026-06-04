@@ -17,6 +17,7 @@ export type FriendInviteMessages = {
   openInApp: string;
   footerAppHint: string;
   gDnaLabel: string;
+  appAboutTitle: string;
 };
 
 const KO: FriendInviteMessages = {
@@ -35,6 +36,7 @@ const KO: FriendInviteMessages = {
   footerAppHint:
     '앱이 설치되어 있지 않다면 Play 스토어에서 지닛을 설치한 뒤, 같은 링크로 다시 열어 주세요.',
   gDnaLabel: 'gDna',
+  appAboutTitle: '지닛 소개',
 };
 
 const EN: FriendInviteMessages = {
@@ -53,6 +55,7 @@ const EN: FriendInviteMessages = {
   footerAppHint:
     'If the app is not installed, install Ginit from the Play Store, then open this link again.',
   gDnaLabel: 'gDna',
+  appAboutTitle: 'About Ginit',
 };
 
 const JA: FriendInviteMessages = {
@@ -71,6 +74,7 @@ const JA: FriendInviteMessages = {
   footerAppHint:
     'アプリが未インストールの場合はPlayストアからGinitをインストールし、同じリンクを再度開いてください。',
   gDnaLabel: 'gDna',
+  appAboutTitle: 'Ginitについて',
 };
 
 const ZH: FriendInviteMessages = {
@@ -88,6 +92,7 @@ const ZH: FriendInviteMessages = {
   openInApp: '在 Ginit 应用中打开',
   footerAppHint: '如未安装应用，请从 Play 商店安装 Ginit 后再次打开此链接。',
   gDnaLabel: 'gDna',
+  appAboutTitle: '关于 Ginit',
 };
 
 const BY_LOCALE: Record<ShareLocale, FriendInviteMessages> = {
