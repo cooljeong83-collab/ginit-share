@@ -1,9 +1,18 @@
 # 웹 공유 QA 체크리스트
 
-환경: Supabase `0273`–`0279`·`0326` 적용, ginit-share·ginit-app 최신 배포.
+환경: Supabase `0273`–`0279`·`0326`·**`0342`(친구 초대 share)** 적용, ginit-share·ginit-app 최신 배포.
 
 **필수 Vercel env:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, **`SUPABASE_SERVICE_ROLE_KEY`** (서버 전용).  
 guest RPC는 브라우저가 `/api/share/*`만 호출 — anon 키로 `meeting_share_guest_*` 직접 RPC 불가(`0279`).
+
+## 친구 요청 `/f/{token}` (0342)
+
+1. 앱 **친구 추가** → 친구 요청 링크 공유 → URL `https://{origin}/f/{64hex}`.
+2. 비로그인 브라우저 `/f/{token}` → 초대자 닉·사진·**친구 수락하기** CTA (404 없음).
+3. 앱 설치·로그인 후 CTA → `ginitapp://friends?friendInviteToken=…` → 친구 탭·관계 **accepted**.
+4. 미설치 Android → Play Store fallback → 설치 후 동일 링크 재방문.
+5. 잘못된·만료 토큰 → 안내 문구 (`ok: false`).
+6. 모임 `/s/` 회귀 — 기존과 동일.
 
 ## OPEN 모임
 

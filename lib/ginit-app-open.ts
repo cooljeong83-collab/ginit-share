@@ -50,3 +50,19 @@ export function openGinitApp(meetingId?: string | null, shareToken?: string | nu
     : deepLink;
   window.location.assign(url);
 }
+
+export function resolveFriendInviteDeepLink(friendInviteToken: string): string {
+  const token = friendInviteToken.trim();
+  return `ginitapp://friends?friendInviteToken=${encodeURIComponent(token)}`;
+}
+
+export function openGinitAppForFriendInvite(friendInviteToken: string): void {
+  if (typeof window === 'undefined') return;
+  const deepLink = resolveFriendInviteDeepLink(friendInviteToken);
+  const fallback =
+    (process.env.NEXT_PUBLIC_GINIT_PLAY_STORE_URL || '').trim() || GINIT_PLAY_STORE_URL;
+  const url = isAndroidUserAgent(navigator.userAgent)
+    ? buildAndroidIntentOpenUrl(deepLink, fallback)
+    : deepLink;
+  window.location.assign(url);
+}
