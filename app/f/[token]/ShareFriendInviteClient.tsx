@@ -5,54 +5,11 @@ import homeStyles from '@/app/(home)/page.module.css';
 import GinitFriendInviteOpenLink from '@/app/GinitFriendInviteOpenLink';
 import { apiFriendInviteGuestGet } from '@/lib/friend-invite-api-client';
 import { getHomeContent, youtubeThumbnailUrl, type HomeLocale } from '@/lib/home-i18n';
+import { useScrollDeckLoop, useScrollSlides } from '@/lib/use-home-scroll-deck';
 import { useFriendInviteLocale } from '@/lib/use-friend-invite-locale';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import styles from './friend-invite.module.css';
-
-function useScrollSlides(containerRef: React.RefObject<HTMLElement | null>) {
-  const [active, setActive] = useState(0);
-
-  useEffect(() => {
-    const root = containerRef.current;
-    if (!root) return;
-
-    const slides = root.querySelectorAll<HTMLElement>('[data-slide]');
-    if (!slides.length) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        let bestIdx = -1;
-        let bestRatio = 0;
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const idx = Number((entry.target as HTMLElement).dataset.slide);
-          if (Number.isNaN(idx)) continue;
-          if (entry.intersectionRatio > bestRatio) {
-            bestRatio = entry.intersectionRatio;
-            bestIdx = idx;
-          }
-        }
-        if (bestIdx >= 0) setActive(bestIdx);
-      },
-      { root, threshold: [0.4, 0.55, 0.7] },
-    );
-
-    slides.forEach((slide) => observer.observe(slide));
-    return () => observer.disconnect();
-  }, [containerRef]);
-
-  const scrollTo = useCallback((index: number) => {
-    const root = containerRef.current;
-    if (!root) return;
-    root.querySelector<HTMLElement>(`[data-slide="${index}"]`)?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-  }, [containerRef]);
-
-  return { active, scrollTo };
-}
 
 function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -89,20 +46,23 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
   const { locale, m } = useFriendInviteLocale();
   const home = useMemo(() => getHomeContent(locale as HomeLocale), [locale]);
   const deckRef = useRef<HTMLElement>(null);
-  const { active, scrollTo } = useScrollSlides(deckRef);
   const [ready, setReady] = useState(false);
   const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading');
   const [err, setErr] = useState<string | null>(null);
   const [profile, setProfile] = useState<InviteProfile | null>(null);
 
+  const deckEnabled = phase === 'ready';
+  const slideCount = 1 + home.featureSlides.length + home.highlightSlides.length;
+  const { active, scrollTo } = useScrollSlides(deckRef, deckEnabled);
+  useScrollDeckLoop(deckRef, deckEnabled, active, slideCount, scrollTo);
+
+  const youtubeEmbedSrc = `https://www.youtube-nocookie.com/embed/${home.youtubeVideoId}?rel=0&modestbranding=1`;
+  const youtubePosterSrc = youtubeThumbnailUrl(home.youtubeVideoId);
+
   useEffect(() => {
     const id = requestAnimationFrame(() => setReady(true));
     return () => cancelAnimationFrame(id);
   }, []);
-
-  const slideCount = 1 + home.featureSlides.length + home.highlightSlides.length;
-  const youtubeEmbedSrc = `https://www.youtube-nocookie.com/embed/${home.youtubeVideoId}?rel=0&modestbranding=1`;
-  const youtubePosterSrc = youtubeThumbnailUrl(home.youtubeVideoId);
 
   const load = useCallback(async () => {
     setPhase('loading');
@@ -178,7 +138,7 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
           data-slide={slideIndex++}
           className={`${homeStyles.slide} ${homeStyles.slideIntro} ${active === 0 ? homeStyles.slideActive : ''}`}
           aria-label={m.inviteTitle(nickname)}>
-          <div className={homeStyles.introInner}>
+          <div className={`${homeStyles.introInner} ${styles.introInner}`}>
             <section className={styles.inviteCard} aria-label={nickname}>
               <div className={styles.profile}>
                 <div
@@ -192,17 +152,19 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
               <p className={styles.inviteBody}>{m.inviteBody}</p>
             </section>
 
-            <div className={homeStyles.introCta}>
-              <GinitFriendInviteOpenLink
-                className={homeStyles.introBtnPrimary}
-                friendInviteToken={token}>
-                <span className={homeStyles.btnShine} aria-hidden />
-                {m.acceptCta}
-              </GinitFriendInviteOpenLink>
-            </div>
+            <section className={homeStyles.introCta} aria-label={m.acceptCta}>
+              <div className={homeStyles.introActions}>
+                <GinitFriendInviteOpenLink
+                  className={homeStyles.introBtnPrimary}
+                  friendInviteToken={token}>
+                  <span className={homeStyles.btnShine} aria-hidden />
+                  {m.acceptCta}
+                </GinitFriendInviteOpenLink>
+              </div>
+            </section>
 
             <section className={homeStyles.introVideo} aria-label={home.videoAria}>
-              <div className={homeStyles.introVideoFrame}>
+              <div className={`${homeStyles.introVideoFrame} ${styles.introVideoFrame}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   className={homeStyles.videoPoster}
@@ -212,7 +174,7 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
                   height={720}
                 />
                 <iframe
-                  className={homeStyles.video}
+                  className={`${homeStyles.video} ${styles.introVideo}`}
                   src={youtubeEmbedSrc}
                   title={home.videoTitle}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -223,7 +185,13 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
               </div>
             </section>
 
-            <p className={homeStyles.introScrollCue}>{home.scrollCue}</p>
+            <button
+              type="button"
+              className={`${homeStyles.introScrollCue} ${styles.scrollCueBtn}`}
+              onClick={() => scrollTo(1)}
+              aria-label={home.scrollCue}>
+              {home.scrollCue}
+            </button>
           </div>
         </article>
 
