@@ -1,14 +1,58 @@
 'use client';
 
+import { OnboardingIcon } from '@/app/(home)/OnboardingIcons';
+import homeStyles from '@/app/(home)/page.module.css';
 import GinitFriendInviteOpenLink from '@/app/GinitFriendInviteOpenLink';
 import { apiFriendInviteGuestGet } from '@/lib/friend-invite-api-client';
 import { getHomeContent, youtubeThumbnailUrl, type HomeLocale } from '@/lib/home-i18n';
 import { useFriendInviteLocale } from '@/lib/use-friend-invite-locale';
-import Image from 'next/image';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import '../../s/[token]/share.css';
 import styles from './friend-invite.module.css';
+
+function useScrollSlides(containerRef: React.RefObject<HTMLElement | null>) {
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    const root = containerRef.current;
+    if (!root) return;
+
+    const slides = root.querySelectorAll<HTMLElement>('[data-slide]');
+    if (!slides.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        let bestIdx = -1;
+        let bestRatio = 0;
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const idx = Number((entry.target as HTMLElement).dataset.slide);
+          if (Number.isNaN(idx)) continue;
+          if (entry.intersectionRatio > bestRatio) {
+            bestRatio = entry.intersectionRatio;
+            bestIdx = idx;
+          }
+        }
+        if (bestIdx >= 0) setActive(bestIdx);
+      },
+      { root, threshold: [0.4, 0.55, 0.7] },
+    );
+
+    slides.forEach((slide) => observer.observe(slide));
+    return () => observer.disconnect();
+  }, [containerRef]);
+
+  const scrollTo = useCallback((index: number) => {
+    const root = containerRef.current;
+    if (!root) return;
+    root.querySelector<HTMLElement>(`[data-slide="${index}"]`)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, [containerRef]);
+
+  return { active, scrollTo };
+}
 
 function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -35,24 +79,28 @@ function initialsFrom(label: string): string {
 type InviteProfile = {
   nickname: string;
   photoUrl: string;
-  gDna: string;
 };
 
 type ShareFriendInviteClientProps = {
   token: string;
 };
 
-function PageShell({ children }: { children: React.ReactNode }) {
-  return <main className={styles.page}>{children}</main>;
-}
-
 export default function ShareFriendInviteClient({ token }: ShareFriendInviteClientProps) {
   const { locale, m } = useFriendInviteLocale();
   const home = useMemo(() => getHomeContent(locale as HomeLocale), [locale]);
+  const deckRef = useRef<HTMLElement>(null);
+  const { active, scrollTo } = useScrollSlides(deckRef);
+  const [ready, setReady] = useState(false);
   const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading');
   const [err, setErr] = useState<string | null>(null);
   const [profile, setProfile] = useState<InviteProfile | null>(null);
 
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  const slideCount = 1 + home.featureSlides.length + home.highlightSlides.length;
   const youtubeEmbedSrc = `https://www.youtube-nocookie.com/embed/${home.youtubeVideoId}?rel=0&modestbranding=1`;
   const youtubePosterSrc = youtubeThumbnailUrl(home.youtubeVideoId);
 
@@ -73,8 +121,7 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
       }
       const nickname = asStr(data.nickname) || 'Ginit';
       const photoUrl = asStr(data.photoUrl);
-      const gDna = asStr(data.gDna);
-      setProfile({ nickname, photoUrl, gDna });
+      setProfile({ nickname, photoUrl });
       setPhase('ready');
     } catch (e) {
       setErr(e instanceof Error ? e.message : m.unknownError);
@@ -88,132 +135,145 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
 
   if (phase === 'loading') {
     return (
-      <PageShell>
-        <div className={styles.centerState}>
-          <div className={styles.centerBlock}>
-            <header className={styles.hero}>
-              <Image
-                src="/ginit-logo.png"
-                alt=""
-                width={72}
-                height={72}
-                className={styles.logo}
-                priority
-              />
-              <p className={styles.kicker}>{m.kicker}</p>
-            </header>
-            <p className={styles.emptyText}>{m.loading}</p>
-          </div>
-        </div>
-      </PageShell>
+      <main className={styles.statePage}>
+        <p className={styles.stateText}>{m.loading}</p>
+      </main>
     );
   }
 
   if (phase === 'error' || !profile) {
     return (
-      <PageShell>
-        <div className={styles.centerState}>
-          <div className={styles.centerBlock}>
-            <header className={styles.hero}>
-              <Image
-                src="/ginit-logo.png"
-                alt=""
-                width={72}
-                height={72}
-                className={styles.logo}
-                priority
-              />
-              <p className={styles.kicker}>{m.kicker}</p>
-            </header>
-            <h1 className={styles.emptyTitle}>{m.errorTitle}</h1>
-            <p className={styles.alert} role="alert">
-              {err ?? m.unknownError}
-            </p>
-            <p className={styles.emptyText}>{m.errorHint}</p>
-          </div>
-        </div>
-      </PageShell>
+      <main className={styles.statePage}>
+        <h1 className={styles.stateTitle}>{m.errorTitle}</h1>
+        <p className={styles.alert} role="alert">
+          {err ?? m.unknownError}
+        </p>
+        <p className={styles.stateText}>{m.errorHint}</p>
+      </main>
     );
   }
 
-  const { nickname, photoUrl, gDna } = profile;
+  const { nickname, photoUrl } = profile;
   const photoOk = photoUrl.startsWith('https://') || photoUrl.startsWith('http://');
+  let slideIndex = 0;
 
   return (
-    <PageShell>
-      <div className={styles.inner}>
-        <header className={styles.hero}>
-          <Image
-            src="/ginit-logo.png"
-            alt=""
-            width={72}
-            height={72}
-            className={styles.logo}
-            priority
+    <main
+      className={`${homeStyles.page} ${ready ? homeStyles.ready : ''} ${active === 0 ? homeStyles.pageOnIntro : ''}`}>
+      <nav className={homeStyles.dots} aria-label={home.dotsAria}>
+        {Array.from({ length: slideCount }, (_, i) => (
+          <button
+            key={i}
+            type="button"
+            className={`${homeStyles.dot} ${active === i ? homeStyles.dotActive : ''}`}
+            aria-label={home.slideAria(i + 1)}
+            aria-current={active === i ? 'true' : undefined}
+            onClick={() => scrollTo(i)}
           />
-          <p className={styles.kicker}>{m.kicker}</p>
-        </header>
+        ))}
+      </nav>
 
-        <section className={styles.inviteCard} aria-label={nickname}>
-          <div className={styles.profile}>
-            <div
-              className={`${styles.avatar} ${photoOk ? styles.avatarPhoto : ''}`}
-              aria-hidden={photoOk}>
-              {photoOk ? <img src={photoUrl} alt="" /> : initialsFrom(nickname)}
+      <section ref={deckRef} className={homeStyles.deck} aria-label={home.onboardingAria}>
+        <article
+          data-slide={slideIndex++}
+          className={`${homeStyles.slide} ${homeStyles.slideIntro} ${active === 0 ? homeStyles.slideActive : ''}`}
+          aria-label={m.inviteTitle(nickname)}>
+          <div className={homeStyles.introInner}>
+            <section className={styles.inviteCard} aria-label={nickname}>
+              <div className={styles.profile}>
+                <div
+                  className={`${styles.avatar} ${photoOk ? styles.avatarPhoto : ''}`}
+                  aria-hidden={photoOk}>
+                  {photoOk ? <img src={photoUrl} alt="" /> : initialsFrom(nickname)}
+                </div>
+                <h1 className={styles.profileName}>{nickname}</h1>
+              </div>
+              <h2 className={styles.inviteTitle}>{m.inviteTitle(nickname)}</h2>
+              <p className={styles.inviteBody}>{m.inviteBody}</p>
+            </section>
+
+            <div className={homeStyles.introCta}>
+              <GinitFriendInviteOpenLink
+                className={homeStyles.introBtnPrimary}
+                friendInviteToken={token}>
+                <span className={homeStyles.btnShine} aria-hidden />
+                {m.acceptCta}
+              </GinitFriendInviteOpenLink>
             </div>
-            <h1 className={styles.profileName}>{nickname}</h1>
-            {gDna ? (
-              <p className={styles.gDna}>
-                <span>{m.gDnaLabel}</span>
-                <span>{gDna}</span>
-              </p>
-            ) : null}
+
+            <section className={homeStyles.introVideo} aria-label={home.videoAria}>
+              <div className={homeStyles.introVideoFrame}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className={homeStyles.videoPoster}
+                  src={youtubePosterSrc}
+                  alt=""
+                  width={1280}
+                  height={720}
+                />
+                <iframe
+                  className={homeStyles.video}
+                  src={youtubeEmbedSrc}
+                  title={home.videoTitle}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
+              </div>
+            </section>
+
+            <p className={homeStyles.introScrollCue}>{home.scrollCue}</p>
           </div>
-          <h2 className={styles.inviteTitle}>{m.inviteTitle(nickname)}</h2>
-          <p className={styles.inviteBody}>{m.inviteBody}</p>
-        </section>
+        </article>
 
-        <section className={styles.videoSection} aria-label={home.videoAria}>
-          <div className={styles.videoFrame}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              className={styles.videoPoster}
-              src={youtubePosterSrc}
-              alt=""
-              width={1280}
-              height={720}
-            />
-            <iframe
-              className={styles.video}
-              src={youtubeEmbedSrc}
-              title={home.videoTitle}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="strict-origin-when-cross-origin"
-            />
-          </div>
-        </section>
+        {home.featureSlides.map((item) => {
+          const idx = slideIndex++;
+          return (
+            <article
+              key={item.id}
+              data-slide={idx}
+              className={`${homeStyles.slide} ${homeStyles.slideFeature} ${active === idx ? homeStyles.slideActive : ''}`}>
+              <div className={homeStyles.slideContent}>
+                <span className={homeStyles.step}>{item.step}</span>
+                <div className={`${homeStyles.iconStage} ${homeStyles[`iconStage_${item.id}`]}`}>
+                  <span className={homeStyles.iconGlow} aria-hidden />
+                  <span className={homeStyles.iconBox}>
+                    <OnboardingIcon id={item.id} />
+                  </span>
+                </div>
+                <p className={homeStyles.highlight}>{item.highlight}</p>
+                <h2 className={homeStyles.slideTitle}>{item.title}</h2>
+                <p className={homeStyles.slideDesc}>{item.desc}</p>
+              </div>
+            </article>
+          );
+        })}
 
-        <footer className={styles.appFooter}>
-          <h3 className={styles.appAboutTitle}>{m.appAboutTitle}</h3>
-          <p className={styles.appAbout}>{home.metaDescription}</p>
-          <p className={styles.installHint}>{m.footerAppHint}</p>
-        </footer>
-      </div>
-
-      <div className="gBottomBar">
-        <div className="gBottomInner">
-          <GinitFriendInviteOpenLink
-            className="gPillBtn gPillPrimary"
-            friendInviteToken={token}>
-            <span className="gPillBtnSymbol" aria-hidden>
-              ✓
-            </span>
-            {m.acceptCta}
-          </GinitFriendInviteOpenLink>
-        </div>
-      </div>
-    </PageShell>
+        {home.highlightSlides.map((item, hIdx) => {
+          const idx = slideIndex++;
+          const isLast = hIdx === home.highlightSlides.length - 1;
+          return (
+            <article
+              key={item.id}
+              data-slide={idx}
+              className={`${homeStyles.slide} ${homeStyles.slideHighlight} ${active === idx ? homeStyles.slideActive : ''}`}>
+              <div className={homeStyles.slideContent}>
+                <div className={`${homeStyles.iconStage} ${homeStyles[`iconStage_${item.id}`]}`}>
+                  <span className={homeStyles.iconGlow} aria-hidden />
+                  <span className={homeStyles.iconBox}>
+                    <OnboardingIcon id={item.id} />
+                  </span>
+                </div>
+                <p className={homeStyles.highlight}>{item.sub}</p>
+                <h2 className={homeStyles.slideTitle}>{item.title}</h2>
+                <p className={homeStyles.slideDesc}>{item.desc}</p>
+                {isLast ? <p className={styles.installHint}>{m.footerAppHint}</p> : null}
+              </div>
+            </article>
+          );
+        })}
+      </section>
+    </main>
   );
 }

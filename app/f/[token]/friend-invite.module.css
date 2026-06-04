@@ -1,53 +1,9 @@
-.page {
-  --ink: #0a0a0a;
-  --muted: #64748b;
-  --accent: #6d28d9;
-  --card: #ffffff;
-  --card-border: rgba(0, 0, 0, 0.08);
-  --bg: #f8fafc;
-
-  min-height: 100dvh;
-  background: var(--bg);
-  color: var(--ink);
-  padding: max(20px, env(safe-area-inset-top)) 16px calc(120px + env(safe-area-inset-bottom));
-}
-
-.inner {
-  width: 100%;
-  max-width: 440px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.hero {
-  text-align: center;
-  padding-top: 4px;
-}
-
-.logo {
-  display: block;
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 8px;
-  object-fit: contain;
-}
-
-.kicker {
-  margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--accent);
-}
-
 .inviteCard {
-  background: var(--card);
-  border: 1px solid var(--card-border);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 18px;
-  padding: 22px 20px;
-  box-shadow: 0 12px 40px -28px rgba(109, 40, 217, 0.35);
+  padding: 20px 18px;
+  box-shadow: 0 12px 40px -28px rgba(109, 40, 217, 0.28);
 }
 
 .profile {
@@ -56,21 +12,19 @@
   align-items: center;
   text-align: center;
   gap: 10px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .avatar {
-  width: 88px;
-  height: 88px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid rgba(109, 40, 217, 0.15);
   background: #ede9fe;
   display: grid;
   place-items: center;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #4c1d95;
   flex-shrink: 0;
@@ -90,121 +44,60 @@
 
 .profileName {
   margin: 0;
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.25;
-}
-
-.gDna {
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(109, 40, 217, 0.08);
-  color: var(--accent);
-  font-size: 0.8125rem;
-  font-weight: 700;
+  color: #0a0a0a;
 }
 
 .inviteTitle {
   margin: 0 0 8px;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.4;
   text-align: center;
+  color: #0a0a0a;
 }
 
 .inviteBody {
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   line-height: 1.55;
   color: #334155;
   text-align: center;
-}
-
-.videoSection {
-  width: 100%;
-}
-
-.videoFrame {
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #0a0a0a;
-  border: 1px solid var(--card-border);
-  box-shadow: 0 20px 50px -24px rgba(109, 40, 217, 0.35);
-}
-
-.videoPoster {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-}
-
-.video {
-  position: relative;
-  z-index: 1;
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border: 0;
-}
-
-.appFooter {
-  padding: 4px 2px 8px;
-}
-
-.appAboutTitle {
-  margin: 0 0 8px;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.appAbout {
-  margin: 0 0 14px;
-  font-size: 0.875rem;
-  line-height: 1.6;
-  color: #334155;
 }
 
 .installHint {
-  margin: 0;
+  margin: 20px 0 0;
   font-size: 0.8125rem;
   line-height: 1.55;
-  color: var(--muted);
+  color: rgba(244, 242, 255, 0.55);
 }
 
-.centerState {
-  min-height: 60dvh;
+.statePage {
+  min-height: 100dvh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
+  padding: 24px 20px;
+  background: #f8fafc;
+  color: #0f172a;
 }
 
-.centerBlock {
-  max-width: 320px;
-}
-
-.emptyTitle {
-  margin: 10px 0 0;
+.stateTitle {
+  margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-.emptyText {
+.stateText {
   margin: 12px 0 0;
+  max-width: 320px;
   font-size: 0.9375rem;
   line-height: 1.55;
   color: #334155;
