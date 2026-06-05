@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { normalizeShareToken } from '@/lib/share-token-server';
 import { toAbsoluteSiteUrl } from '@/lib/site-origin';
 
 import ShareFriendInviteClient from './ShareFriendInviteClient';
@@ -10,7 +11,7 @@ export async function generateMetadata({
   params: Promise<{ token: string }>;
 }): Promise<Metadata> {
   const { token: raw } = await params;
-  const token = decodeURIComponent(typeof raw === 'string' ? raw : '');
+  const token = normalizeShareToken(decodeURIComponent(typeof raw === 'string' ? raw : '')) ?? '';
   const title = '지닛 · 친구 요청';
   const description = '지닛 친구 요청 링크입니다. 앱에서 친구를 수락할 수 있어요.';
   const logoAbs = toAbsoluteSiteUrl('/ginit-logo.png');
@@ -44,5 +45,6 @@ export default async function FriendInviteSharePage({
 }) {
   const { token } = await params;
   const raw = typeof token === 'string' ? token : '';
-  return <ShareFriendInviteClient token={decodeURIComponent(raw)} />;
+  const normalized = normalizeShareToken(decodeURIComponent(raw)) ?? decodeURIComponent(raw);
+  return <ShareFriendInviteClient token={normalized} />;
 }

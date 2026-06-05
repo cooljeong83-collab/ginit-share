@@ -16,6 +16,11 @@ import {
   resolveNaverMovieSearchWebUrl,
   type ShareMessages,
 } from '@/lib/share-i18n';
+import {
+  persistShareMeetingToken,
+  replaceShareUrlWithViewPath,
+  SHARE_MEETING_VIEW_PATH,
+} from '@/lib/share-link-session';
 import { useShareLocale } from '@/lib/use-share-locale';
 import {
   useCallback,
@@ -341,7 +346,13 @@ function SvgCalendarIcon() {
   );
 }
 
-export default function ShareMeetingClient({ token }: { token: string }) {
+export default function ShareMeetingClient({
+  token,
+  urlCleanup = true,
+}: {
+  token: string;
+  urlCleanup?: boolean;
+}) {
   const { m } = useShareLocale();
   const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading');
   const [err, setErr] = useState<string | null>(null);
@@ -683,6 +694,12 @@ export default function ShareMeetingClient({ token }: { token: string }) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!urlCleanup || phase !== 'ready') return;
+    persistShareMeetingToken(token);
+    replaceShareUrlWithViewPath(SHARE_MEETING_VIEW_PATH);
+  }, [urlCleanup, phase, token]);
 
   useEffect(() => {
     if (joined) {

@@ -88,6 +88,11 @@ const PROFILE_PHOTO_HOST_SUFFIXES = [
   'fbsbx.com',
   'kakaocdn.net',
   'kakao.com',
+  'cdn-apple.com',
+  'apple.com',
+  'icloud.com',
+  'cdninstagram.com',
+  'instagram.com',
 ] as const;
 
 export function sanitizeShareProfilePhotoUrl(raw: unknown): string | null {

@@ -1,5 +1,6 @@
 import { resolvePlaceThumbnailUrl, type PlaceThumbnailInput } from '@/lib/place-thumbnail-resolve';
 import { sanitizeHttpsImageUrl, sanitizeNaverPlaceHref } from '@/lib/safe-external-url';
+import { normalizeShareToken } from '@/lib/share-token-server';
 import { rpcMeetingShareGuestGet } from '@/lib/share-rpc-server';
 
 type LooseMeeting = Record<string, unknown>;
@@ -131,15 +132,15 @@ export type ShareMeetingOgPayload = {
 
 /** 링크 프리뷰용: service role RPC로 모임 메타만 조회 (실패 시 null) */
 export async function fetchShareMeetingOgMeta(token: string): Promise<ShareMeetingOgPayload | null> {
-  const raw = token.trim();
-  if (!raw) return null;
+  const normalized = normalizeShareToken(token);
+  if (!normalized) return null;
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || !process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) {
     return null;
   }
 
   try {
-    const row = await rpcMeetingShareGuestGet(raw);
+    const row = await rpcMeetingShareGuestGet(normalized);
     const meeting = row.meeting;
     if (!meeting || typeof meeting !== 'object' || Array.isArray(meeting)) return null;
 

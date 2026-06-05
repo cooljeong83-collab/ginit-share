@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { sanitizeShareImageUrl } from '@/lib/safe-external-url';
 import { fetchShareMeetingOgMeta } from '@/lib/share-meeting-og';
+import { normalizeShareToken } from '@/lib/share-token-server';
 import { toAbsoluteSiteUrl } from '@/lib/site-origin';
 
 import ShareMeetingClient from './ShareMeetingClient';
@@ -16,7 +17,7 @@ function absoluteOgImageUrl(candidate: string | null, logoAbs: string): string {
 
 export async function generateMetadata({ params }: { params: Promise<{ token: string }> }): Promise<Metadata> {
   const { token: raw } = await params;
-  const token = decodeURIComponent(typeof raw === 'string' ? raw : '');
+  const token = normalizeShareToken(decodeURIComponent(typeof raw === 'string' ? raw : '')) ?? '';
   const og = await fetchShareMeetingOgMeta(token);
   const logoAbs = toAbsoluteSiteUrl('/ginit-logo.png');
 
@@ -68,5 +69,6 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
 export default async function SharePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const raw = typeof token === 'string' ? token : '';
-  return <ShareMeetingClient token={decodeURIComponent(raw)} />;
+  const normalized = normalizeShareToken(decodeURIComponent(raw)) ?? decodeURIComponent(raw);
+  return <ShareMeetingClient token={normalized} />;
 }

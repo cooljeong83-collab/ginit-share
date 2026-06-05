@@ -5,6 +5,11 @@ import homeStyles from '@/app/(home)/page.module.css';
 import GinitFriendInviteOpenLink from '@/app/GinitFriendInviteOpenLink';
 import { apiFriendInviteGuestGet } from '@/lib/friend-invite-api-client';
 import { sanitizeShareProfilePhotoUrl } from '@/lib/safe-external-url';
+import {
+  persistFriendInviteToken,
+  replaceShareUrlWithViewPath,
+  SHARE_FRIEND_INVITE_VIEW_PATH,
+} from '@/lib/share-link-session';
 import type { FriendInviteMessages } from '@/lib/friend-invite-i18n';
 import type { FriendInviteLocale } from '@/lib/friend-invite-i18n';
 import { getHomeContent, youtubeThumbnailUrl } from '@/lib/home-i18n';
@@ -84,9 +89,13 @@ type InviteProfile = {
 
 type ShareFriendInviteClientProps = {
   token: string;
+  urlCleanup?: boolean;
 };
 
-export default function ShareFriendInviteClient({ token }: ShareFriendInviteClientProps) {
+export default function ShareFriendInviteClient({
+  token,
+  urlCleanup = true,
+}: ShareFriendInviteClientProps) {
   const { locale, m, setLocale } = useFriendInviteLocale();
   const home = useMemo(() => getHomeContent(locale), [locale]);
   const deckRef = useRef<HTMLElement>(null);
@@ -136,6 +145,12 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!urlCleanup || phase !== 'ready') return;
+    persistFriendInviteToken(token);
+    replaceShareUrlWithViewPath(SHARE_FRIEND_INVITE_VIEW_PATH);
+  }, [urlCleanup, phase, token]);
 
   if (phase === 'loading') {
     return (

@@ -21,6 +21,10 @@ const LIMITS: Record<ApiRateLimitPath, number> = {
   '/api/share/request': 20,
 };
 
+/** path별 규칙 없는 `/api/*` (home-og 등) */
+const API_FALLBACK_LIMIT = 120;
+const API_FALLBACK_KEY = '/api/__fallback__';
+
 /** Vercel Firewall 대시보드 @vercel/firewall 규칙 ID와 동일해야 함 */
 const FIREWALL_RATE_LIMIT_IDS: Partial<Record<ApiRateLimitPath, string>> = {
   '/api/place-thumbnail': 'ginit-share-place-thumbnail',
@@ -34,9 +38,26 @@ const memBuckets = new Map<string, MemBucket>();
 
 /** env 없을 때 `{}` 를 영구 캐시하지 않음 (env 추가 후 재배포 전 인스턴스 대비) */
 let upstashByPath: Partial<Record<ApiRateLimitPath, Ratelimit>> | undefined;
+let upstashFallbackLimiter: Ratelimit | null | undefined;
 
 function isApiRateLimitPath(pathname: string): pathname is ApiRateLimitPath {
   return Object.prototype.hasOwnProperty.call(LIMITS, pathname);
+}
+
+type ResolvedRateLimit = {
+  bucket: ApiRateLimitPath | typeof API_FALLBACK_KEY;
+  limit: number;
+  useVercelFirewall: boolean;
+};
+
+function resolveRateLimit(pathname: string): ResolvedRateLimit | null {
+  if (isApiRateLimitPath(pathname)) {
+    return { bucket: pathname, limit: LIMITS[pathname], useVercelFirewall: true };
+  }
+  if (pathname.startsWith('/api/')) {
+    return { bucket: API_FALLBACK_KEY, limit: API_FALLBACK_LIMIT, useVercelFirewall: false };
+  }
+  return null;
 }
 
 function upstashPrefixForPath(pathname: ApiRateLimitPath): string {
@@ -61,6 +82,30 @@ function getUpstashLimiters(): Partial<Record<ApiRateLimitPath, Ratelimit>> {
   }
   upstashByPath = limiters;
   return upstashByPath;
+}
+
+function getUpstashFallbackLimiter(): Ratelimit | undefined {
+  if (upstashFallbackLimiter !== undefined) {
+    return upstashFallbackLimiter ?? undefined;
+  }
+  const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+  if (!url || !token) {
+    upstashFallbackLimiter = null;
+    return undefined;
+  }
+  const redis = new Redis({ url, token });
+  upstashFallbackLimiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(API_FALLBACK_LIMIT, '1 m'),
+    prefix: 'ginit-share:api-fallback',
+  });
+  return upstashFallbackLimiter;
+}
+
+function getUpstashLimiter(bucket: ApiRateLimitPath | typeof API_FALLBACK_KEY): Ratelimit | undefined {
+  if (bucket === API_FALLBACK_KEY) return getUpstashFallbackLimiter();
+  return getUpstashLimiters()[bucket];
 }
 
 function checkMemory(key: string, limit: number): { ok: true } | { ok: false; retryAfterSec: number } {
@@ -104,8 +149,11 @@ async function checkVercelFirewall(
   }
 }
 
-async function checkUpstash(pathname: ApiRateLimitPath, ip: string): Promise<'ok' | 'limited' | 'skip'> {
-  const limiter = getUpstashLimiters()[pathname];
+async function checkUpstash(
+  bucket: ApiRateLimitPath | typeof API_FALLBACK_KEY,
+  ip: string,
+): Promise<'ok' | 'limited' | 'skip'> {
+  const limiter = bucket === API_FALLBACK_KEY ? getUpstashLimiter(bucket) : getUpstashLimiters()[bucket];
   if (!limiter) return 'skip';
   const { success } = await limiter.limit(ip);
   return success ? 'ok' : 'limited';
@@ -128,25 +176,37 @@ export async function enforceApiRateLimit(opts: {
   ip: string;
   headers: Headers;
 }): Promise<{ limited: boolean; retryAfterSec: number; source?: string }> {
-  if (!isApiRateLimitPath(opts.pathname)) {
+  const resolved = resolveRateLimit(opts.pathname);
+  if (!resolved) {
     return { limited: false, retryAfterSec: 0 };
   }
 
-  const pathname = opts.pathname;
-  const limit = LIMITS[pathname];
-  const key = `${pathname}:${opts.ip}`;
+  const { bucket, limit, useVercelFirewall } = resolved;
+  const key = `${bucket}:${opts.ip}`;
 
-  const fw = await checkVercelFirewall(pathname, opts.ip, opts.headers);
-  if (fw === 'limited') {
-    return { limited: true, retryAfterSec: 60, source: 'vercel-firewall' };
+  if (useVercelFirewall && isApiRateLimitPath(bucket)) {
+    const fw = await checkVercelFirewall(bucket, opts.ip, opts.headers);
+    if (fw === 'limited') {
+      return { limited: true, retryAfterSec: 60, source: 'vercel-firewall' };
+    }
+    const upstash = await checkUpstash(bucket, opts.ip);
+    if (upstash === 'limited') {
+      return { limited: true, retryAfterSec: 60, source: 'upstash' };
+    }
+    if (fw === 'skip' && upstash === 'skip') {
+      const mem = checkMemory(key, limit);
+      if (!mem.ok) {
+        return { limited: true, retryAfterSec: mem.retryAfterSec, source: 'memory' };
+      }
+    }
+    return { limited: false, retryAfterSec: 0 };
   }
 
-  const upstash = await checkUpstash(pathname, opts.ip);
+  const upstash = await checkUpstash(bucket, opts.ip);
   if (upstash === 'limited') {
     return { limited: true, retryAfterSec: 60, source: 'upstash' };
   }
-
-  if (fw === 'skip' && upstash === 'skip') {
+  if (upstash === 'skip') {
     const mem = checkMemory(key, limit);
     if (!mem.ok) {
       return { limited: true, retryAfterSec: mem.retryAfterSec, source: 'memory' };
