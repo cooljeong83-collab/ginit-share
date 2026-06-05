@@ -9,7 +9,7 @@ import {
   apiShareGuestRequest,
 } from '@/lib/share-api-client';
 import { SHARE_TOKEN_HEADER } from '@/lib/share-api-http';
-import { sanitizeNaverPlaceHref, sanitizeShareImageUrl } from '@/lib/safe-external-url';
+import { sanitizeNaverPlaceHref, sanitizeShareImageUrl, sanitizeShareProfilePhotoUrl } from '@/lib/safe-external-url';
 import {
   formatMeetingShareRpcError,
   formatYmdWithWeekday,
@@ -39,6 +39,10 @@ function asStr(v: unknown): string {
 
 function shareImageUrl(raw: unknown): string {
   return sanitizeShareImageUrl(raw) ?? '';
+}
+
+function profilePhotoUrl(raw: unknown): string {
+  return sanitizeShareProfilePhotoUrl(raw) ?? '';
 }
 
 /** Supabase 요청이 끝나지 않을 때 로딩이 무한히 보이지 않도록 */
@@ -1027,7 +1031,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
   const approvalLabel = requiresHostApproval ? m.hostApproval : m.openJoin;
   const heroFallbackImageUrl = heroPlaceThumbs.length > 0 ? '' : imageUrl;
   const hostDisplayNameFromApi = asStr(meeting.hostDisplayName);
-  const hostPhotoUrl = shareImageUrl(meeting.hostPhotoUrl);
+  const hostPhotoUrl = profilePhotoUrl(meeting.hostPhotoUrl);
 
   return (
     <main className="gShell">
@@ -1462,7 +1466,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
               const guestNick = isGuest ? (voteLogDisplayNameByUserId.get(pid) ?? '').trim() : '';
               const pub = !isGuest && !isHost ? participantPublicByUserId.get(pidKey) : undefined;
               const nickFromProfile = pub?.nickname?.trim() ?? '';
-              const memberPhotoUrl = shareImageUrl(pub?.photoUrl);
+              const memberPhotoUrl = profilePhotoUrl(pub?.photoUrl);
               const memberNickFromLog = !isGuest && !isHost ? (voteLogDisplayNameByUserId.get(pid) ?? '').trim() : '';
               const memberNick = !isGuest && !isHost ? (nickFromProfile || memberNickFromLog) : '';
               const hostNickFromLog = isHost ? (voteLogDisplayNameByUserId.get(pid) ?? '').trim() : '';

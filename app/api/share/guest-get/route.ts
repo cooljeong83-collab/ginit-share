@@ -4,6 +4,7 @@ import {
   readShareTokenFromApiRequest,
   shareRpcErrorResponse,
 } from '@/lib/share-api-http';
+import { enrichMeetingShareGuestGet } from '@/lib/enrich-guest-profile-photos';
 import { rpcMeetingShareGuestGet } from '@/lib/share-rpc-server';
 
 export async function POST(req: Request) {
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
     if (tokenOrRes instanceof Response) return tokenOrRes;
     const token = tokenOrRes;
 
-    const data = await rpcMeetingShareGuestGet(token);
+    const data = await enrichMeetingShareGuestGet(await rpcMeetingShareGuestGet(token));
     return Response.json(data);
   } catch (e) {
     const mapped = mapAssertTokenError(e);

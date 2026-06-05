@@ -4,7 +4,7 @@ import { OnboardingIcon } from '@/app/(home)/OnboardingIcons';
 import homeStyles from '@/app/(home)/page.module.css';
 import GinitFriendInviteOpenLink from '@/app/GinitFriendInviteOpenLink';
 import { apiFriendInviteGuestGet } from '@/lib/friend-invite-api-client';
-import { sanitizeShareImageUrl } from '@/lib/safe-external-url';
+import { sanitizeShareProfilePhotoUrl } from '@/lib/safe-external-url';
 import type { FriendInviteMessages } from '@/lib/friend-invite-i18n';
 import type { FriendInviteLocale } from '@/lib/friend-invite-i18n';
 import { getHomeContent, youtubeThumbnailUrl } from '@/lib/home-i18n';
@@ -160,7 +160,7 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
   }
 
   const { nickname, photoUrl } = profile;
-  const safePhotoUrl = sanitizeShareImageUrl(photoUrl) ?? '';
+  const safePhotoUrl = sanitizeShareProfilePhotoUrl(photoUrl) ?? '';
   const photoOk = Boolean(safePhotoUrl);
   let slideIndex = 0;
 

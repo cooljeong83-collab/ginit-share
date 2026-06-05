@@ -70,10 +70,29 @@ export function sanitizeHttpsImageUrl(raw: unknown): string | null {
 
 const SHARE_IMAGE_HOST_SUFFIXES = [...NAVER_MEDIA_HOST_SUFFIXES, 'supabase.co'] as const;
 
-/** 웹 공유 UI 이미지: 네이버 CDN + Supabase Storage 프로필 사진 */
+/** 웹 공유 UI 이미지: 네이버 CDN + Supabase Storage */
 export function sanitizeShareImageUrl(raw: unknown): string | null {
   const u = parseHttpsUrl(raw);
   if (!u) return null;
   if (!hostAllowed(u.hostname, SHARE_IMAGE_HOST_SUFFIXES)) return null;
+  return u.href;
+}
+
+/** OAuth·Supabase 프로필 사진 (장소 썸네일과 분리) */
+const PROFILE_PHOTO_HOST_SUFFIXES = [
+  'supabase.co',
+  'googleusercontent.com',
+  'ggpht.com',
+  'fbcdn.net',
+  'facebook.com',
+  'fbsbx.com',
+  'kakaocdn.net',
+  'kakao.com',
+] as const;
+
+export function sanitizeShareProfilePhotoUrl(raw: unknown): string | null {
+  const u = parseHttpsUrl(raw);
+  if (!u) return null;
+  if (!hostAllowed(u.hostname, PROFILE_PHOTO_HOST_SUFFIXES)) return null;
   return u.href;
 }
