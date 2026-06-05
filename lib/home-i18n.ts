@@ -58,6 +58,7 @@ const YOUTUBE_JA = 'MJyJAklCIMg';
 const YOUTUBE_ZH = 'zwUDhi71O-8';
 const YOUTUBE_ZH_TW = 'Wh72WxMDt8c';
 const YOUTUBE_LA = '7o7QUYBq6SQ';
+const YOUTUBE_VI = 'VjF1VVFL6Wk';
 
 export function youtubeThumbnailUrl(videoId: string): string {
   return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
@@ -526,7 +527,7 @@ const ZH_TW: HomeContent = {
 const VI: HomeContent = {
   locale: 'vi',
   htmlLang: 'vi',
-  youtubeVideoId: YOUTUBE_EN,
+  youtubeVideoId: YOUTUBE_VI,
   brand: 'Ginit',
   headlineMain: 'Kết bạn tại Hàn Quốc',
   headlineAccent: '',
