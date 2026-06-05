@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { sanitizeShareImageUrl } from '@/lib/safe-external-url';
 import { fetchShareMeetingOgMeta } from '@/lib/share-meeting-og';
 import { toAbsoluteSiteUrl } from '@/lib/site-origin';
 
@@ -7,7 +8,8 @@ import ShareMeetingClient from './ShareMeetingClient';
 
 function absoluteOgImageUrl(candidate: string | null, logoAbs: string): string {
   if (!candidate) return logoAbs;
-  if (candidate.startsWith('https://') || candidate.startsWith('http://')) return candidate;
+  const safeRemote = sanitizeShareImageUrl(candidate);
+  if (safeRemote) return safeRemote;
   const path = candidate.startsWith('/') ? candidate : `/${candidate}`;
   return toAbsoluteSiteUrl(path);
 }

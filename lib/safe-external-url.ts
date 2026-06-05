@@ -67,3 +67,13 @@ export function sanitizeHttpsImageUrl(raw: unknown): string | null {
   if (!hostAllowed(u.hostname, NAVER_MEDIA_HOST_SUFFIXES)) return null;
   return u.href;
 }
+
+const SHARE_IMAGE_HOST_SUFFIXES = [...NAVER_MEDIA_HOST_SUFFIXES, 'supabase.co'] as const;
+
+/** 웹 공유 UI 이미지: 네이버 CDN + Supabase Storage 프로필 사진 */
+export function sanitizeShareImageUrl(raw: unknown): string | null {
+  const u = parseHttpsUrl(raw);
+  if (!u) return null;
+  if (!hostAllowed(u.hostname, SHARE_IMAGE_HOST_SUFFIXES)) return null;
+  return u.href;
+}

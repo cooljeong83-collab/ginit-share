@@ -2,15 +2,27 @@ import { checkRateLimit } from '@vercel/firewall';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
-export type ApiRateLimitPath = '/api/place-thumbnail' | '/api/naver-static-map';
+export type ApiRateLimitPath =
+  | '/api/place-thumbnail'
+  | '/api/naver-static-map'
+  | '/api/share/guest-get'
+  | '/api/share/join'
+  | '/api/share/leave'
+  | '/api/share/request'
+  | '/api/friend-invite/guest-get';
 
 const LIMITS: Record<ApiRateLimitPath, number> = {
   '/api/place-thumbnail': 40,
   '/api/naver-static-map': 60,
+  '/api/share/guest-get': 60,
+  '/api/friend-invite/guest-get': 30,
+  '/api/share/join': 20,
+  '/api/share/leave': 20,
+  '/api/share/request': 20,
 };
 
 /** Vercel Firewall 대시보드 @vercel/firewall 규칙 ID와 동일해야 함 */
-const FIREWALL_RATE_LIMIT_IDS: Record<ApiRateLimitPath, string> = {
+const FIREWALL_RATE_LIMIT_IDS: Partial<Record<ApiRateLimitPath, string>> = {
   '/api/place-thumbnail': 'ginit-share-place-thumbnail',
   '/api/naver-static-map': 'ginit-share-naver-static-map',
 };
@@ -24,7 +36,11 @@ const memBuckets = new Map<string, MemBucket>();
 let upstashByPath: Partial<Record<ApiRateLimitPath, Ratelimit>> | undefined;
 
 function isApiRateLimitPath(pathname: string): pathname is ApiRateLimitPath {
-  return pathname === '/api/place-thumbnail' || pathname === '/api/naver-static-map';
+  return Object.prototype.hasOwnProperty.call(LIMITS, pathname);
+}
+
+function upstashPrefixForPath(pathname: ApiRateLimitPath): string {
+  return `ginit-share:${pathname.replace(/^\/api\//, '').replace(/\//g, '-')}`;
 }
 
 function getUpstashLimiters(): Partial<Record<ApiRateLimitPath, Ratelimit>> {
@@ -35,18 +51,15 @@ function getUpstashLimiters(): Partial<Record<ApiRateLimitPath, Ratelimit>> {
     return {};
   }
   const redis = new Redis({ url, token });
-  upstashByPath = {
-    '/api/place-thumbnail': new Ratelimit({
+  const limiters = {} as Partial<Record<ApiRateLimitPath, Ratelimit>>;
+  for (const pathname of Object.keys(LIMITS) as ApiRateLimitPath[]) {
+    limiters[pathname] = new Ratelimit({
       redis,
-      limiter: Ratelimit.slidingWindow(LIMITS['/api/place-thumbnail'], '1 m'),
-      prefix: 'ginit-share:place-thumbnail',
-    }),
-    '/api/naver-static-map': new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(LIMITS['/api/naver-static-map'], '1 m'),
-      prefix: 'ginit-share:naver-static-map',
-    }),
-  };
+      limiter: Ratelimit.slidingWindow(LIMITS[pathname], '1 m'),
+      prefix: upstashPrefixForPath(pathname),
+    });
+  }
+  upstashByPath = limiters;
   return upstashByPath;
 }
 
@@ -74,9 +87,9 @@ async function checkVercelFirewall(
   ip: string,
   headers: Headers,
 ): Promise<'ok' | 'limited' | 'skip'> {
-  if (process.env.VERCEL !== '1') return 'skip';
-
   const rateLimitId = FIREWALL_RATE_LIMIT_IDS[pathname];
+  if (!rateLimitId || process.env.VERCEL !== '1') return 'skip';
+
   try {
     const { rateLimited, error } = await checkRateLimit(rateLimitId, {
       headers,
@@ -119,15 +132,16 @@ export async function enforceApiRateLimit(opts: {
     return { limited: false, retryAfterSec: 0 };
   }
 
-  const limit = LIMITS[opts.pathname];
-  const key = `${opts.pathname}:${opts.ip}`;
+  const pathname = opts.pathname;
+  const limit = LIMITS[pathname];
+  const key = `${pathname}:${opts.ip}`;
 
-  const fw = await checkVercelFirewall(opts.pathname, opts.ip, opts.headers);
+  const fw = await checkVercelFirewall(pathname, opts.ip, opts.headers);
   if (fw === 'limited') {
     return { limited: true, retryAfterSec: 60, source: 'vercel-firewall' };
   }
 
-  const upstash = await checkUpstash(opts.pathname, opts.ip);
+  const upstash = await checkUpstash(pathname, opts.ip);
   if (upstash === 'limited') {
     return { limited: true, retryAfterSec: 60, source: 'upstash' };
   }

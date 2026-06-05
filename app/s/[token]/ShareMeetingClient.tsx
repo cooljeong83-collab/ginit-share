@@ -9,6 +9,7 @@ import {
   apiShareGuestRequest,
 } from '@/lib/share-api-client';
 import { SHARE_TOKEN_HEADER } from '@/lib/share-api-http';
+import { sanitizeNaverPlaceHref, sanitizeShareImageUrl } from '@/lib/safe-external-url';
 import {
   formatMeetingShareRpcError,
   formatYmdWithWeekday,
@@ -34,6 +35,10 @@ type LooseDoc = Record<string, unknown>;
 
 function asStr(v: unknown): string {
   return typeof v === 'string' ? v.trim() : '';
+}
+
+function shareImageUrl(raw: unknown): string {
+  return sanitizeShareImageUrl(raw) ?? '';
 }
 
 /** Supabase 요청이 끝나지 않을 때 로딩이 무한히 보이지 않도록 */
@@ -158,7 +163,7 @@ function ShareConfirmedPlaceCard({
   const { p, name } = place;
   const category = asStr(p.category);
   const addr = asStr(p.address) || fallbackAddress;
-  const naverLink = asStr(p.naverPlaceLink);
+  const naverLink = sanitizeNaverPlaceHref(p.naverPlaceLink) ?? '';
 
   return (
     <>
@@ -211,13 +216,11 @@ function movieChipId(m: LooseDoc, index: number): string {
 }
 
 function moviePosterUrl(m: LooseDoc): string {
-  const u =
-    asStr(m.posterUrl) ||
-    asStr(m.poster) ||
-    asStr(m.imageUrl) ||
-    asStr(m.thumbnailUrl) ||
-    asStr(m.thumbUrl);
-  return u.startsWith('https://') ? u : '';
+  for (const key of ['posterUrl', 'poster', 'imageUrl', 'thumbnailUrl', 'thumbUrl'] as const) {
+    const u = shareImageUrl(m[key]);
+    if (u) return u;
+  }
+  return '';
 }
 
 function guestStorageKey(meetingId: string): string {
@@ -592,7 +595,11 @@ export default function ShareMeetingClient({ token }: { token: string }) {
     if (fromCache) return fromCache;
     const p = confirmedPlace?.p;
     if (!p) return '';
-    return asStr(p.preferredPhotoMediaUrl) || asStr(p.photoUrl) || asStr(p.imageUrl);
+    return (
+      shareImageUrl(p.preferredPhotoMediaUrl) ||
+      shareImageUrl(p.photoUrl) ||
+      shareImageUrl(p.imageUrl)
+    );
   }, [confirmedPlace, placeThumbById]);
 
   const confirmedPlaceLatLng = useMemo(() => {
@@ -619,18 +626,18 @@ export default function ShareMeetingClient({ token }: { token: string }) {
     if (scheduleConfirmed) {
       if (confirmedPlace) {
         const u = confirmedPlaceThumb.trim();
-        if (u.startsWith('https://') || u.startsWith('http://')) return [u];
+        if (u) return [u];
       }
       return [];
     }
     const urls: string[] = [];
     for (const { p, id } of sortedPlaceCandidates) {
       const u =
-        (placeThumbById[id] ?? '') ||
-        asStr((p as LooseDoc).preferredPhotoMediaUrl) ||
-        asStr((p as LooseDoc).photoUrl) ||
-        asStr((p as LooseDoc).imageUrl);
-      if (u.startsWith('https://')) urls.push(u);
+        shareImageUrl(placeThumbById[id]) ||
+        shareImageUrl((p as LooseDoc).preferredPhotoMediaUrl) ||
+        shareImageUrl((p as LooseDoc).photoUrl) ||
+        shareImageUrl((p as LooseDoc).imageUrl);
+      if (u) urls.push(u);
     }
     return urls;
   }, [scheduleConfirmed, confirmedPlace, confirmedPlaceThumb, sortedPlaceCandidates, placeThumbById]);
@@ -734,8 +741,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
       .map(({ p, i, id }) => {
         const existing = placeThumbById[id];
         if (existing) return null;
-        const pref = asStr(p.preferredPhotoMediaUrl);
-        const direct = pref.startsWith('https://') ? pref : '';
+        const direct = shareImageUrl(p.preferredPhotoMediaUrl);
         if (direct) return null;
         return { p, i, id };
       })
@@ -758,7 +764,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
             }),
           });
           const json = (await res.json()) as { thumbnailUrl?: string | null };
-          const thumb = typeof json.thumbnailUrl === 'string' ? json.thumbnailUrl.trim() : null;
+          const thumb = shareImageUrl(json.thumbnailUrl) || null;
           if (!cancelled) {
             setPlaceThumbById((prev) => (prev[id] ? prev : { ...prev, [id]: thumb }));
           }
@@ -997,7 +1003,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
 
   const title = asStr(meeting.title) || m.defaultMeetingTitle;
   const desc = asStr(meeting.description);
-  const imageUrl = asStr(meeting.imageUrl);
+  const imageUrl = shareImageUrl(meeting.imageUrl);
   const isPublic = typeof meeting.isPublic === 'boolean' ? meeting.isPublic : asStr(meeting.isPublic) === 'true';
   const capacity = Number.isFinite(Number(meeting.capacity)) ? Number(meeting.capacity) : null;
   const scheduleDate = asStr(meeting.scheduleDate);
@@ -1021,9 +1027,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
   const approvalLabel = requiresHostApproval ? m.hostApproval : m.openJoin;
   const heroFallbackImageUrl = heroPlaceThumbs.length > 0 ? '' : imageUrl;
   const hostDisplayNameFromApi = asStr(meeting.hostDisplayName);
-  const hostPhotoUrlRaw = asStr(meeting.hostPhotoUrl);
-  const hostPhotoUrl =
-    hostPhotoUrlRaw.startsWith('https://') || hostPhotoUrlRaw.startsWith('http://') ? hostPhotoUrlRaw : '';
+  const hostPhotoUrl = shareImageUrl(meeting.hostPhotoUrl);
 
   return (
     <main className="gShell">
@@ -1338,11 +1342,11 @@ export default function ShareMeetingClient({ token }: { token: string }) {
                 const addr = asStr(p.address);
                 const category = asStr(p.category);
                 const thumb =
-                  (placeThumbById[id] ?? '') ||
-                  asStr(p.preferredPhotoMediaUrl) ||
-                  asStr(p.photoUrl) ||
-                  asStr(p.imageUrl);
-                const link = asStr(p.naverPlaceLink);
+                  shareImageUrl(placeThumbById[id]) ||
+                  shareImageUrl(p.preferredPhotoMediaUrl) ||
+                  shareImageUrl(p.photoUrl) ||
+                  shareImageUrl(p.imageUrl);
+                const link = sanitizeNaverPlaceHref(p.naverPlaceLink) ?? '';
                 const cardClass = `gPlaceCard ${on ? 'gPlaceCardOn' : ''}${joined ? ' gPlaceCardReadonly' : ''}`;
                 const inner = (
                   <>
@@ -1458,11 +1462,7 @@ export default function ShareMeetingClient({ token }: { token: string }) {
               const guestNick = isGuest ? (voteLogDisplayNameByUserId.get(pid) ?? '').trim() : '';
               const pub = !isGuest && !isHost ? participantPublicByUserId.get(pidKey) : undefined;
               const nickFromProfile = pub?.nickname?.trim() ?? '';
-              const photoFromProfile = pub?.photoUrl?.trim() ?? '';
-              const memberPhotoUrl =
-                photoFromProfile.startsWith('https://') || photoFromProfile.startsWith('http://')
-                  ? photoFromProfile
-                  : '';
+              const memberPhotoUrl = shareImageUrl(pub?.photoUrl);
               const memberNickFromLog = !isGuest && !isHost ? (voteLogDisplayNameByUserId.get(pid) ?? '').trim() : '';
               const memberNick = !isGuest && !isHost ? (nickFromProfile || memberNickFromLog) : '';
               const hostNickFromLog = isHost ? (voteLogDisplayNameByUserId.get(pid) ?? '').trim() : '';

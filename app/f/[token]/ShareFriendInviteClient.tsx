@@ -4,6 +4,7 @@ import { OnboardingIcon } from '@/app/(home)/OnboardingIcons';
 import homeStyles from '@/app/(home)/page.module.css';
 import GinitFriendInviteOpenLink from '@/app/GinitFriendInviteOpenLink';
 import { apiFriendInviteGuestGet } from '@/lib/friend-invite-api-client';
+import { sanitizeShareImageUrl } from '@/lib/safe-external-url';
 import type { FriendInviteMessages } from '@/lib/friend-invite-i18n';
 import type { FriendInviteLocale } from '@/lib/friend-invite-i18n';
 import { getHomeContent, youtubeThumbnailUrl } from '@/lib/home-i18n';
@@ -159,7 +160,8 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
   }
 
   const { nickname, photoUrl } = profile;
-  const photoOk = photoUrl.startsWith('https://') || photoUrl.startsWith('http://');
+  const safePhotoUrl = sanitizeShareImageUrl(photoUrl) ?? '';
+  const photoOk = Boolean(safePhotoUrl);
   let slideIndex = 0;
 
   return (
@@ -195,7 +197,7 @@ export default function ShareFriendInviteClient({ token }: ShareFriendInviteClie
                 <div
                   className={`${styles.avatar} ${photoOk ? styles.avatarPhoto : ''}`}
                   aria-hidden={photoOk}>
-                  {photoOk ? <img src={photoUrl} alt="" /> : initialsFrom(nickname)}
+                  {photoOk ? <img src={safePhotoUrl} alt="" /> : initialsFrom(nickname)}
                 </div>
                 <h1 className={styles.profileName}>{nickname}</h1>
               </div>
