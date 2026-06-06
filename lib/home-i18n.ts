@@ -52,7 +52,7 @@ export type HomeContent = {
   metaDescription: string;
 };
 
-const YOUTUBE_KO = 'k4RHJp1sqRc';
+const YOUTUBE_KO = 'so-UTRFtf6Y';
 const YOUTUBE_EN = 'VC2Yh9aTivY';
 const YOUTUBE_JA = 'MJyJAklCIMg';
 const YOUTUBE_ZH = 'zwUDhi71O-8';
