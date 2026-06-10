@@ -127,8 +127,14 @@ export type ShareMeetingOgPayload = {
   title: string;
   pageTitle: string;
   description: string;
+  imageHeadline: string;
   imageUrl: string | null;
 };
+
+export function resolveMeetingShareOgImagePath(token: string): string {
+  const t = token.trim() || 'default';
+  return `/api/meeting-share-og/${encodeURIComponent(t)}`;
+}
 
 /** 링크 프리뷰용: service role RPC로 모임 메타만 조회 (실패 시 null) */
 export async function fetchShareMeetingOgMeta(token: string): Promise<ShareMeetingOgPayload | null> {
@@ -149,7 +155,7 @@ export async function fetchShareMeetingOgMeta(token: string): Promise<ShareMeeti
     const description = buildShareDescription(meeting, title);
     const imageUrl = await pickOgImageUrlWithResolve(meeting);
 
-    return { title, pageTitle, description, imageUrl };
+    return { title, pageTitle, description, imageHeadline: title, imageUrl };
   } catch {
     return null;
   }

@@ -20,6 +20,20 @@ export function ginitLogoOgImages(alt = '지닛') {
   return [{ url, width: 512, height: 512, alt, type: 'image/png' as const }];
 }
 
+/** 모임 공유 `/s/{token}` — 1200×630 OG (썸네일 + 제목·힌트) */
+export function meetingShareOgImages(token: string, alt = '지닛 모임 공유') {
+  const encoded = encodeURIComponent(token.trim() || 'default');
+  return [
+    {
+      url: toAbsoluteSiteUrl(`/api/meeting-share-og/${encoded}`),
+      width: 1200,
+      height: 630,
+      alt,
+      type: 'image/png' as const,
+    },
+  ];
+}
+
 /** 친구 초대 `/f/{token}` — 1200×630 OG (로고 비율 맞춤) */
 export function friendInviteOgImages(token: string, alt = '지닛 친구 요청') {
   const encoded = encodeURIComponent(token.trim() || 'default');

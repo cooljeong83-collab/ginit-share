@@ -1,25 +1,17 @@
 import type { Metadata } from 'next';
 
-import { sanitizeShareImageUrl } from '@/lib/safe-external-url';
 import { fetchShareMeetingOgMeta } from '@/lib/share-meeting-og';
 import { normalizeShareToken } from '@/lib/share-token-server';
-import { toAbsoluteSiteUrl } from '@/lib/site-origin';
+import { meetingShareOgImages } from '@/lib/site-og';
 
 import ShareMeetingClient from './ShareMeetingClient';
-
-function absoluteOgImageUrl(candidate: string | null, logoAbs: string): string {
-  if (!candidate) return logoAbs;
-  const safeRemote = sanitizeShareImageUrl(candidate);
-  if (safeRemote) return safeRemote;
-  const path = candidate.startsWith('/') ? candidate : `/${candidate}`;
-  return toAbsoluteSiteUrl(path);
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ token: string }> }): Promise<Metadata> {
   const { token: raw } = await params;
   const token = normalizeShareToken(decodeURIComponent(typeof raw === 'string' ? raw : '')) ?? '';
   const og = await fetchShareMeetingOgMeta(token);
-  const logoAbs = toAbsoluteSiteUrl('/ginit-logo.png');
+  const ogImages = meetingShareOgImages(token, og?.title ?? '지닛 모임 공유');
+  const ogImageUrl = ogImages[0]?.url ?? '';
 
   if (!og) {
     const t = '지닛 모임 공유';
@@ -30,19 +22,20 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
       openGraph: {
         title: t,
         description: d,
-        images: [{ url: logoAbs, width: 512, height: 512, alt: '지닛' }],
+        url: `/s/${encodeURIComponent(token)}`,
+        siteName: '지닛',
+        locale: 'ko_KR',
+        images: ogImages,
+        type: 'website',
       },
       twitter: {
         card: 'summary_large_image',
         title: t,
         description: d,
-        images: [logoAbs],
+        images: ogImageUrl ? [ogImageUrl] : [],
       },
     };
   }
-
-  const primaryImage = absoluteOgImageUrl(og.imageUrl, logoAbs);
-  const images = [{ url: primaryImage, alt: og.title }];
 
   return {
     title: { absolute: og.pageTitle },
@@ -54,14 +47,16 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
       title: og.pageTitle,
       description: og.description,
       url: `/s/${encodeURIComponent(token)}`,
-      images,
+      siteName: '지닛',
+      locale: 'ko_KR',
+      images: ogImages,
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
       title: og.pageTitle,
       description: og.description,
-      images: [primaryImage],
+      images: ogImageUrl ? [ogImageUrl] : [],
     },
   };
 }
