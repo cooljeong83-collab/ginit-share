@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 
+import { fetchShareFriendInviteOgMeta } from '@/lib/share-friend-invite-og';
 import { normalizeShareToken } from '@/lib/share-token-server';
-import { toAbsoluteSiteUrl } from '@/lib/site-origin';
+import { friendInviteOgImages } from '@/lib/site-og';
 
 import ShareFriendInviteClient from './ShareFriendInviteClient';
 
@@ -12,28 +13,57 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { token: raw } = await params;
   const token = normalizeShareToken(decodeURIComponent(typeof raw === 'string' ? raw : '')) ?? '';
-  const title = '지닛 · 친구 요청';
-  const description = '지닛 친구 요청 링크입니다. 앱에서 친구를 수락할 수 있어요.';
-  const logoAbs = toAbsoluteSiteUrl('/ginit-logo.png');
+  const og = await fetchShareFriendInviteOgMeta(token);
+  const ogImages = friendInviteOgImages(token);
+  const ogImageUrl = ogImages[0]?.url ?? '';
+
+  if (!og) {
+    const title = '지닛 · 친구 요청';
+    const description = '지닛 친구 요청 링크입니다. 링크가 만료되었거나 잘못되었을 수 있어요.';
+    return {
+      title: { absolute: title },
+      description,
+      alternates: {
+        canonical: `/f/${encodeURIComponent(token)}`,
+      },
+      openGraph: {
+        title,
+        description,
+        url: `/f/${encodeURIComponent(token)}`,
+        siteName: '지닛',
+        locale: 'ko_KR',
+        images: ogImages,
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: ogImageUrl ? [ogImageUrl] : [],
+      },
+    };
+  }
 
   return {
-    title: { absolute: title },
-    description,
+    title: { absolute: og.pageTitle },
+    description: og.description,
     alternates: {
       canonical: `/f/${encodeURIComponent(token)}`,
     },
     openGraph: {
-      title,
-      description,
+      title: og.pageTitle,
+      description: og.description,
       url: `/f/${encodeURIComponent(token)}`,
-      images: [{ url: logoAbs, width: 512, height: 512, alt: '지닛' }],
+      siteName: '지닛',
+      locale: 'ko_KR',
+      images: ogImages,
       type: 'website',
     },
     twitter: {
-      card: 'summary',
-      title,
-      description,
-      images: [logoAbs],
+      card: 'summary_large_image',
+      title: og.pageTitle,
+      description: og.description,
+      images: ogImageUrl ? [ogImageUrl] : [],
     },
   };
 }
