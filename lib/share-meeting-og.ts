@@ -11,7 +11,7 @@ function asStr(v: unknown): string {
 
 /** 링크 미리보기 하단 설명 — 친구 초대와 동일하게 고정 안내 문구 */
 export const MEETING_SHARE_OG_DESCRIPTION =
-  '지닛 모임 초대 링크입니다. 지닛으로 모임을 시작하고 일정·장소를 함께 정해 보세요.';
+  '지닛으로 모임을 시작하고 일정·장소를 함께 정해 보세요.';
 
 function pickFirstHttpsFromPlace(p: unknown): string | null {
   if (!p || typeof p !== 'object' || Array.isArray(p)) return null;
