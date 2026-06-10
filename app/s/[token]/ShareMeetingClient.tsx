@@ -566,6 +566,7 @@ export default function ShareMeetingClient({
 
   const confirmedDateChipId = useMemo(() => asStr(meeting?.confirmedDateChipId), [meeting]);
   const confirmedPlaceChipId = useMemo(() => asStr(meeting?.confirmedPlaceChipId), [meeting]);
+  const confirmedMovieChipId = useMemo(() => asStr(meeting?.confirmedMovieChipId), [meeting]);
 
   /** 기본 정보 카드: 일정·장소 다중 후보 + 미확정일 때 투표중 표시 */
   const basicInfoDateIsVoting = useMemo(
@@ -656,6 +657,27 @@ export default function ShareMeetingClient({
     }
     return urls;
   }, [scheduleConfirmed, confirmedPlace, confirmedPlaceThumb, sortedPlaceCandidates, placeThumbById]);
+
+  const heroMovieThumbs = useMemo(() => {
+    if (scheduleConfirmed && confirmedMovieChipId) {
+      for (const { m, id } of sortedMovieExtras) {
+        if (id !== confirmedMovieChipId) continue;
+        const u = moviePosterUrl(m);
+        if (u) return [u];
+      }
+    }
+    const urls: string[] = [];
+    for (const { m } of sortedMovieExtras) {
+      const u = moviePosterUrl(m);
+      if (u) urls.push(u);
+    }
+    return urls;
+  }, [scheduleConfirmed, confirmedMovieChipId, sortedMovieExtras]);
+
+  const heroThumbs = useMemo(() => {
+    if (heroPlaceThumbs.length > 0) return heroPlaceThumbs;
+    return heroMovieThumbs;
+  }, [heroPlaceThumbs, heroMovieThumbs]);
 
   const load = useCallback(async () => {
     setPhase('loading');
@@ -1046,7 +1068,7 @@ export default function ShareMeetingClient({
   const totalPeople = new Set<string>([...participantIds, ...joinRequestIds]).size;
 
   const approvalLabel = requiresHostApproval ? m.hostApproval : m.openJoin;
-  const heroFallbackImageUrl = heroPlaceThumbs.length > 0 ? '' : imageUrl;
+  const heroFallbackImageUrl = heroThumbs.length > 0 ? '' : imageUrl;
   const hostDisplayNameFromApi = asStr(meeting.hostDisplayName);
   const hostPhotoUrl = profilePhotoUrl(meeting.hostPhotoUrl);
 
@@ -1054,11 +1076,11 @@ export default function ShareMeetingClient({
     <main className="gShell">
       <header className="gHero">
         <div className="gHeroImage">
-          {heroPlaceThumbs.length === 1 ? (
-            <img src={heroPlaceThumbs[0]} alt="" />
-          ) : heroPlaceThumbs.length > 1 ? (
+          {heroThumbs.length === 1 ? (
+            <img src={heroThumbs[0]} alt="" />
+          ) : heroThumbs.length > 1 ? (
             <div className="gHeroThumbRow" aria-hidden>
-              {heroPlaceThumbs.map((u, idx) => (
+              {heroThumbs.map((u, idx) => (
                 <div className="gHeroThumbCell" key={`${idx}-${u}`}>
                   <img src={u} alt="" />
                 </div>

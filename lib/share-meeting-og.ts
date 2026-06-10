@@ -1,5 +1,5 @@
 import { resolvePlaceThumbnailUrl, type PlaceThumbnailInput } from '@/lib/place-thumbnail-resolve';
-import { sanitizeHttpsImageUrl, sanitizeNaverPlaceHref } from '@/lib/safe-external-url';
+import { sanitizeHttpsImageUrl, sanitizeNaverPlaceHref, sanitizeShareImageUrl } from '@/lib/safe-external-url';
 import { normalizeShareToken } from '@/lib/share-token-server';
 import { rpcMeetingShareGuestGet } from '@/lib/share-rpc-server';
 
@@ -18,6 +18,55 @@ function pickFirstHttpsFromPlace(p: unknown): string | null {
   const o = p as Record<string, unknown>;
   for (const k of ['preferredPhotoMediaUrl', 'photoUrl', 'imageUrl']) {
     const u = sanitizeHttpsImageUrl(o[k]);
+    if (u) return u;
+  }
+  return null;
+}
+
+function movieExtrasList(meeting: LooseMeeting): Record<string, unknown>[] {
+  const ex = meeting.extraData;
+  if (!ex || typeof ex !== 'object' || Array.isArray(ex)) return [];
+  const e = ex as Record<string, unknown>;
+  const mv = e.movies;
+  if (Array.isArray(mv)) {
+    return mv.filter((x): x is Record<string, unknown> => Boolean(x) && typeof x === 'object' && !Array.isArray(x));
+  }
+  const one = e.movie;
+  if (one && typeof one === 'object' && !Array.isArray(one)) return [one as Record<string, unknown>];
+  return [];
+}
+
+function movieChipId(m: Record<string, unknown>, index: number): string {
+  const mid = asStr(m.id);
+  if (mid) return `${mid}#${index}`;
+  return `movie-${index}`;
+}
+
+function pickFirstHttpsFromMovie(m: Record<string, unknown>): string | null {
+  for (const k of ['posterUrl', 'poster', 'imageUrl', 'thumbnailUrl', 'thumbUrl']) {
+    const u = sanitizeShareImageUrl(m[k]);
+    if (u) return u;
+  }
+  return null;
+}
+
+/** 장소 후보 → 영화 포스터 → meeting.imageUrl */
+function pickMoviePosterUrl(meeting: LooseMeeting): string | null {
+  const movies = movieExtrasList(meeting);
+  if (!movies.length) return null;
+
+  const confirmedChipId = asStr(meeting.confirmedMovieChipId);
+  if (confirmedChipId) {
+    for (let i = 0; i < movies.length; i++) {
+      const mv = movies[i]!;
+      if (movieChipId(mv, i) !== confirmedChipId) continue;
+      const u = pickFirstHttpsFromMovie(mv);
+      if (u) return u;
+    }
+  }
+
+  for (const mv of movies) {
+    const u = pickFirstHttpsFromMovie(mv);
     if (u) return u;
   }
   return null;
@@ -59,7 +108,10 @@ function pickOgImageUrl(meeting: LooseMeeting): string | null {
     if (u) return u;
   }
 
-  return sanitizeHttpsImageUrl(meeting.imageUrl);
+  const fromMovie = pickMoviePosterUrl(meeting);
+  if (fromMovie) return fromMovie;
+
+  return sanitizeShareImageUrl(meeting.imageUrl);
 }
 
 function placeThumbnailInputFromRecord(p: Record<string, unknown>): PlaceThumbnailInput {
@@ -100,7 +152,11 @@ async function pickOgImageUrlWithResolve(meeting: LooseMeeting): Promise<string 
   if (fromDb) return fromDb;
 
   const place = pickOgPlaceCandidate(meeting);
-  if (!place) return null;
+  if (!place) {
+    const fromMovie = pickMoviePosterUrl(meeting);
+    if (fromMovie) return fromMovie;
+    return null;
+  }
 
   try {
     return await resolvePlaceThumbnailUrl(placeThumbnailInputFromRecord(place));

@@ -68,7 +68,7 @@ export function sanitizeHttpsImageUrl(raw: unknown): string | null {
   return u.href;
 }
 
-const SHARE_IMAGE_HOST_SUFFIXES = [...NAVER_MEDIA_HOST_SUFFIXES, 'supabase.co'] as const;
+const SHARE_IMAGE_HOST_SUFFIXES = [...NAVER_MEDIA_HOST_SUFFIXES, 'supabase.co', 'image.tmdb.org'] as const;
 
 /** 웹 공유 UI 이미지: 네이버 CDN + Supabase Storage */
 export function sanitizeShareImageUrl(raw: unknown): string | null {
