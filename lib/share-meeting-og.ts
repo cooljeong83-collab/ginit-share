@@ -9,23 +9,9 @@ function asStr(v: unknown): string {
   return typeof v === 'string' ? v.trim() : '';
 }
 
-function buildShareDescription(meeting: LooseMeeting, title: string): string {
-  const desc = asStr(meeting.description);
-  if (desc) return desc.length > 200 ? `${desc.slice(0, 197)}…` : desc;
-
-  const bits: string[] = [];
-  const schedule = [asStr(meeting.scheduleDate), asStr(meeting.scheduleTime)].filter(Boolean).join(' · ');
-  if (schedule) bits.push(schedule);
-  const place = asStr(meeting.placeName);
-  if (place) bits.push(place);
-  const cat = asStr(meeting.categoryLabel);
-  if (cat) bits.push(cat);
-
-  const line = bits.join(' · ');
-  if (line) return line.length > 200 ? `${line.slice(0, 197)}…` : line;
-
-  return `${title} — 지닛 웹 공유에서 일정·장소 투표에 참여해 보세요.`;
-}
+/** 링크 미리보기 하단 설명 — 친구 초대와 동일하게 고정 안내 문구 */
+export const MEETING_SHARE_OG_DESCRIPTION =
+  '지닛 모임 초대 링크입니다. 지닛으로 모임을 시작하고 일정·장소를 함께 정해 보세요.';
 
 function pickFirstHttpsFromPlace(p: unknown): string | null {
   if (!p || typeof p !== 'object' || Array.isArray(p)) return null;
@@ -127,7 +113,6 @@ export type ShareMeetingOgPayload = {
   title: string;
   pageTitle: string;
   description: string;
-  imageHeadline: string;
   imageUrl: string | null;
 };
 
@@ -152,10 +137,10 @@ export async function fetchShareMeetingOgMeta(token: string): Promise<ShareMeeti
 
     const title = asStr(meeting.title) || '모임';
     const pageTitle = `${title} · 지닛 모임 공유`;
-    const description = buildShareDescription(meeting, title);
+    const description = MEETING_SHARE_OG_DESCRIPTION;
     const imageUrl = await pickOgImageUrlWithResolve(meeting);
 
-    return { title, pageTitle, description, imageHeadline: title, imageUrl };
+    return { title, pageTitle, description, imageUrl };
   } catch {
     return null;
   }

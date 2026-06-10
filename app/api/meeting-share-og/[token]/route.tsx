@@ -35,24 +35,19 @@ export async function GET(_request: Request, context: RouteContext) {
   const decoded = decodeURIComponent(typeof raw === 'string' ? raw : '');
   const token = normalizeShareToken(decoded) ?? '';
 
-  let headline = '모임';
   let backgroundSrc: string | null = null;
 
   if (token) {
     const og = await fetchShareMeetingOgMeta(token);
     if (og) {
-      headline = og.imageHeadline;
       backgroundSrc = await resolveBackgroundDataUrl(og.imageUrl);
     }
   }
 
-  return new ImageResponse(
-    <MeetingShareOgImageMarkup headline={headline} backgroundSrc={backgroundSrc} />,
-    {
-      ...MEETING_SHARE_OG_SIZE,
-      headers: {
-        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
-      },
+  return new ImageResponse(<MeetingShareOgImageMarkup backgroundSrc={backgroundSrc} />, {
+    ...MEETING_SHARE_OG_SIZE,
+    headers: {
+      'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
     },
-  );
+  });
 }
